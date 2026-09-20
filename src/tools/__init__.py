@@ -1,3 +1,3 @@
-from .tools import web_search
+from .tools import web_search, scrape_url
 
-__all__ = ["web_search"]
+__all__ = ["web_search", "scrape_url"]
