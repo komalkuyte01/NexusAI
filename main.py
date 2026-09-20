@@ -5,5 +5,5 @@ if hasattr(sys.stdout, "reconfigure"):
 from rich import print
 from src.tools import web_search, scrape_url
 
-output = scrape_url.invoke("https://en.wikipedia.org/wiki/Artificial_intelligence")
-print(output)
+r = web_search.invoke("https://en.wikipedia.org/wiki/Artificial_intelligence")
+print(r)
