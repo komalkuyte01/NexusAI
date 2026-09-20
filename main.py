@@ -1,9 +1,10 @@
 import sys
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from rich import print
-from src.tools import web_search, scrape_url
+from src.pipelines import run_research_pipeline
 
-r = web_search.invoke("https://en.wikipedia.org/wiki/Artificial_intelligence")
-print(r)
+if __name__ == "__main__":
+    topic = "The impact of AI on the job market in 2026"
+    results = run_research_pipeline(topic)
