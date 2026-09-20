@@ -31,15 +31,12 @@ An autonomous Multi-Agent Research and Report Generation system built with LangC
    ```
 
 4. **Environment Variables:**
-   Copy `.env.example` to `.env` and fill in your API keys:
-   ```bash
-   cp .env.example .env
-   ```
-   Add:
+   Create a `.env` file in the project root and add your API keys:
    ```env
    OPENAI_API_KEY=your_openai_api_key
    TAVILY_API_KEY=your_tavily_api_key
    ```
+
 
 5. **Run the application:**
    ```bash
