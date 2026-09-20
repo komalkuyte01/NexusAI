@@ -25,9 +25,9 @@ An autonomous Multi-Agent Research and Report Generation system built with LangC
    source venv/bin/activate
    ```
 
-3. **Install dependencies:**
+3. **Install backend dependencies:**
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 
 4. **Environment Variables:**
@@ -37,8 +37,8 @@ An autonomous Multi-Agent Research and Report Generation system built with LangC
    TAVILY_API_KEY=your_tavily_api_key
    ```
 
-
-5. **Run the application:**
+5. **Run the research pipeline:**
    ```bash
-   streamlit run app.py
+   python -B backend/main.py
    ```
+

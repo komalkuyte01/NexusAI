@@ -3,10 +3,10 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from src.tools.tools import web_search, scrape_url
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 # Model Initialization
 api_key = os.getenv("OPENAI_API_KEY") or "placeholder-key-set-in-env"

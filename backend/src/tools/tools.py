@@ -1,6 +1,6 @@
 from langchain.tools import tool 
 import requests
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 from tavily import TavilyClient
 from rich import print
@@ -10,7 +10,7 @@ import trafilatura
 import re 
 
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
