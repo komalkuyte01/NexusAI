@@ -1,37 +1,52 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, RotateCcw, FileSpreadsheet, GraduationCap, Zap } from "lucide-react";
+import {
+  Sparkles,
+  RotateCcw,
+  FileSpreadsheet,
+  GraduationCap,
+  Zap,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { ReportType, ResearchRequest } from "@/types";
 
 interface ResearchFormProps {
   onSubmit: (request: ResearchRequest) => void;
   isLoading: boolean;
-  initialTopic?: string;
 }
 
 const PRESET_TOPICS = [
   {
     title: "Quantum Computing & Post-Quantum Cryptography",
     type: "research_paper" as ReportType,
+    requirements: "Focus on NIST standards, RSA vulnerability, and lattice-based cryptography adoption timelines.",
   },
   {
     title: "Autonomous AI Agents in Enterprise Software 2026",
     type: "report" as ReportType,
+    requirements: "Analyze ROI, security governance, multi-agent frameworks, and market disruption.",
   },
   {
     title: "Solid-State EV Batteries Commercialization Landscape",
     type: "report" as ReportType,
+    requirements: "Cover energy density benchmarks, OEM partnerships (Toyota, QuantumScape), and cost per kWh.",
   },
   {
     title: "CRISPR-Cas9 Therapeutics in Human Clinical Trials",
     type: "research_paper" as ReportType,
+    requirements: "Focus on in-vivo delivery mechanisms, FDA approvals, and off-target mutation mitigation.",
   },
 ];
 
 export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState("");
   const [reportType, setReportType] = useState<ReportType>("report");
+  const [requirements, setRequirements] = useState("");
+  const [customFormat, setCustomFormat] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +55,28 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
     onSubmit({
       topic: topic.trim(),
       report_type: reportType,
+      requirements: requirements.trim() ? requirements.trim() : undefined,
+      custom_format: customFormat.trim() ? customFormat.trim() : undefined,
     });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit(e);
+    }
   };
 
   const handleApplyPreset = (preset: (typeof PRESET_TOPICS)[0]) => {
     setTopic(preset.title);
     setReportType(preset.type);
+    setRequirements(preset.requirements);
+  };
+
+  const handleReset = () => {
+    setTopic("");
+    setRequirements("");
+    setCustomFormat("");
   };
 
   return (
@@ -54,15 +85,21 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="topic-input" className="block text-xs font-semibold uppercase tracking-wider text-slate-300 pb-2">
-            Research Objective / Topic
-          </label>
+          <div className="flex items-center justify-between pb-2">
+            <label htmlFor="topic-input" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              Research Objective / Topic
+            </label>
+            <span className="text-[11px] text-slate-500">
+              Press <kbd className="rounded border border-slate-700 bg-slate-800 px-1 py-0.5 text-[10px] text-slate-300 font-mono">Ctrl+Enter</kbd> to run
+            </span>
+          </div>
 
           <div className="relative rounded-xl border border-slate-700/80 bg-slate-900/60 transition-all focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20">
             <textarea
               id="topic-input"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="e.g. The impact of Generative AI and Multimodal Agents on Healthcare Diagnostics in 2026..."
               rows={3}
               className="w-full resize-none rounded-xl bg-transparent px-4 py-3 text-sm text-slate-100 placeholder-slate-500 outline-none sm:text-base"
@@ -171,11 +208,62 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
           </div>
         </div>
 
+        {/* Collapsible Advanced Parameters */}
+        <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex w-full items-center justify-between text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Sliders className="h-3.5 w-3.5 text-indigo-400" />
+              <span>Advanced Parameters & Constraints</span>
+            </div>
+            {showAdvanced ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
+
+          {showAdvanced && (
+            <div className="mt-4 space-y-4 border-t border-slate-800 pt-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Specific Constraints, Target Entities, or Tone
+                </label>
+                <input
+                  type="text"
+                  value={requirements}
+                  onChange={(e) => setRequirements(e.target.value)}
+                  placeholder="e.g. Focus on technical bottleneck, US & EU regulations, 2025-2026 data"
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Custom Section Structure (Optional Override)
+                </label>
+                <input
+                  type="text"
+                  value={customFormat}
+                  onChange={(e) => setCustomFormat(e.target.value)}
+                  placeholder="e.g. 1. Market Overview, 2. Comparative Matrix, 3. Security Risks, 4. Conclusion"
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center justify-between pt-2">
           <button
             type="button"
-            onClick={() => setTopic("")}
-            disabled={isLoading || !topic}
+            onClick={handleReset}
+            disabled={isLoading || (!topic && !requirements && !customFormat)}
             className="flex items-center gap-1.5 rounded-xl border border-slate-800 px-4 py-2.5 text-xs font-medium text-slate-400 transition-colors hover:border-slate-700 hover:text-slate-200 disabled:opacity-40 cursor-pointer"
           >
             <RotateCcw className="h-3.5 w-3.5" />
