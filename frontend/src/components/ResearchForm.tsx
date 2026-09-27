@@ -1,13 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, RotateCcw, FileSpreadsheet, GraduationCap } from "lucide-react";
+import { Sparkles, RotateCcw, FileSpreadsheet, GraduationCap, Zap } from "lucide-react";
 import { ReportType, ResearchRequest } from "@/types";
 
 interface ResearchFormProps {
   onSubmit: (request: ResearchRequest) => void;
   isLoading: boolean;
+  initialTopic?: string;
 }
+
+const PRESET_TOPICS = [
+  {
+    title: "Quantum Computing & Post-Quantum Cryptography",
+    type: "research_paper" as ReportType,
+  },
+  {
+    title: "Autonomous AI Agents in Enterprise Software 2026",
+    type: "report" as ReportType,
+  },
+  {
+    title: "Solid-State EV Batteries Commercialization Landscape",
+    type: "report" as ReportType,
+  },
+  {
+    title: "CRISPR-Cas9 Therapeutics in Human Clinical Trials",
+    type: "research_paper" as ReportType,
+  },
+];
 
 export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState("");
@@ -21,6 +41,11 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
       topic: topic.trim(),
       report_type: reportType,
     });
+  };
+
+  const handleApplyPreset = (preset: (typeof PRESET_TOPICS)[0]) => {
+    setTopic(preset.title);
+    setReportType(preset.type);
   };
 
   return (
@@ -54,6 +79,27 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
                 </button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Preset Topic Badges */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <Zap className="h-3 w-3 text-amber-400" />
+            <span>Trending Research Sparks:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {PRESET_TOPICS.map((preset, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleApplyPreset(preset)}
+                disabled={isLoading}
+                className="rounded-lg border border-slate-800 bg-slate-900/70 px-2.5 py-1 text-xs text-slate-300 transition-all hover:border-indigo-500/50 hover:bg-slate-850 hover:text-indigo-200 disabled:opacity-50 cursor-pointer"
+              >
+                {preset.title}
+              </button>
+            ))}
           </div>
         </div>
 
