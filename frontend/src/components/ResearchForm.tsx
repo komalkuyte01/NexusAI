@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, RotateCcw } from "lucide-react";
-import { ResearchRequest } from "@/types";
+import { Sparkles, RotateCcw, FileSpreadsheet, GraduationCap } from "lucide-react";
+import { ReportType, ResearchRequest } from "@/types";
 
 interface ResearchFormProps {
   onSubmit: (request: ResearchRequest) => void;
@@ -11,6 +11,7 @@ interface ResearchFormProps {
 
 export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState("");
+  const [reportType, setReportType] = useState<ReportType>("report");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +19,7 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
 
     onSubmit({
       topic: topic.trim(),
-      report_type: "report",
+      report_type: reportType,
     });
   };
 
@@ -56,6 +57,74 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
           </div>
         </div>
 
+        {/* Format Selector Tabs */}
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Synthesis Format Style
+          </label>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {/* Executive Report */}
+            <button
+              type="button"
+              onClick={() => setReportType("report")}
+              disabled={isLoading}
+              className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+                reportType === "report"
+                  ? "border-indigo-500/80 bg-indigo-500/10 text-white shadow-lg shadow-indigo-500/10"
+                  : "border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+              }`}
+            >
+              <div
+                className={`mt-0.5 rounded-lg p-2 ${
+                  reportType === "report"
+                    ? "bg-indigo-500 text-white"
+                    : "bg-slate-800 text-slate-400"
+                }`}
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-slate-100">
+                  Executive Business Report
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Executive summary, key market insights, strategic recommendations & citations.
+                </div>
+              </div>
+            </button>
+
+            {/* Academic Research Paper */}
+            <button
+              type="button"
+              onClick={() => setReportType("research_paper")}
+              disabled={isLoading}
+              className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+                reportType === "research_paper"
+                  ? "border-indigo-500/80 bg-indigo-500/10 text-white shadow-lg shadow-indigo-500/10"
+                  : "border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+              }`}
+            >
+              <div
+                className={`mt-0.5 rounded-lg p-2 ${
+                  reportType === "research_paper"
+                    ? "bg-indigo-500 text-white"
+                    : "bg-slate-800 text-slate-400"
+                }`}
+              >
+                <GraduationCap className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-slate-100">
+                  Academic Research Paper
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Abstract, introduction, in-depth technical analysis, conclusions & references.
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between pt-2">
           <button
             type="button"
@@ -73,7 +142,7 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-500 px-6 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.01] hover:shadow-indigo-500/40 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
           >
             <Sparkles className="h-4 w-4" />
-            <span>{isLoading ? "Researching..." : "Start Research"}</span>
+            <span>{isLoading ? "Synthesizing..." : "Start Research"}</span>
           </button>
         </div>
       </form>
