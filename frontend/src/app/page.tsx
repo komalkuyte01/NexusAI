@@ -7,8 +7,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { LoadingStatus } from "@/components/LoadingStatus";
 import { ReportViewer } from "@/components/ReportViewer";
 import { SourcesCard } from "@/components/SourcesCard";
+import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
-import { ResearchRequest, ResearchResponse } from "@/types";
+import { getSavedReports, saveReport, deleteSavedReport, clearAllSavedReports } from "@/lib/storage";
+import { ResearchRequest, ResearchResponse, SavedReport } from "@/types";
 import { AlertCircle, XCircle } from "lucide-react";
 
 export default function Home() {
@@ -19,9 +21,16 @@ export default function Home() {
   const [report, setReport] = useState<ResearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // History & saved state
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
+
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Load local storage saved reports
+    setSavedReports(getSavedReports());
+
     let isMounted = true;
 
     async function pingStatus() {
@@ -70,9 +79,41 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSaveReport = (rep: ResearchResponse) => {
+    const saved = saveReport(rep);
+    setSavedReports((prev) => [saved, ...prev]);
+  };
+
+  const handleSelectReport = (saved: SavedReport) => {
+    setReport(saved);
+    setError(null);
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  const handleDeleteReport = (id: string) => {
+    const updated = deleteSavedReport(id);
+    setSavedReports(updated);
+  };
+
+  const handleClearAllHistory = () => {
+    clearAllSavedReports();
+    setSavedReports([]);
+  };
+
+  const isCurrentReportSaved = Boolean(
+    report && savedReports.some((item) => item.topic === report.topic && item.content === report.content)
+  );
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Header backendStatus={backendStatus} apiUrl={apiUrl} />
+      <Header
+        backendStatus={backendStatus}
+        apiUrl={apiUrl}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        savedCount={savedReports.length}
+      />
 
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 space-y-8">
         <section>
@@ -112,7 +153,12 @@ export default function Home() {
         {/* Generated Report and Sources View */}
         {report && !isLoading && (
           <section className="space-y-6">
-            <ReportViewer report={report} onReset={handleReset} />
+            <ReportViewer
+              report={report}
+              onReset={handleReset}
+              onSave={handleSaveReport}
+              isSaved={isCurrentReportSaved}
+            />
             <SourcesCard sources={report.sources} />
           </section>
         )}
@@ -137,6 +183,16 @@ export default function Home() {
           </>
         )}
       </main>
+
+      {/* History Drawer Modal */}
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        savedReports={savedReports}
+        onSelectReport={handleSelectReport}
+        onDeleteReport={handleDeleteReport}
+        onClearAll={handleClearAllHistory}
+      />
 
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
         NexusResearch Agent &middot; Built with Next.js & FastAPI &middot; {new Date().getFullYear()}
