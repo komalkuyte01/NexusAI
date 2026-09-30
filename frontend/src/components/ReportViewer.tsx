@@ -3,15 +3,22 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Copy, Check, Download, FileText, Calendar, RotateCcw } from "lucide-react";
+import { Copy, Check, Download, FileText, Calendar, RotateCcw, Bookmark, BookmarkCheck, Printer } from "lucide-react";
 import { ResearchResponse } from "@/types";
 
 interface ReportViewerProps {
   report: ResearchResponse;
   onReset: () => void;
+  onSave?: (report: ResearchResponse) => void;
+  isSaved?: boolean;
 }
 
-export const ReportViewer: React.FC<ReportViewerProps> = ({ report, onReset }) => {
+export const ReportViewer: React.FC<ReportViewerProps> = ({
+  report,
+  onReset,
+  onSave,
+  isSaved = false,
+}) => {
   const [copied, setCopied] = useState(false);
 
   const wordCount = report.content
@@ -39,6 +46,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ report, onReset }) =
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const formattedDate = report.created_at
@@ -70,6 +81,31 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ report, onReset }) =
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
+          {onSave && (
+            <button
+              type="button"
+              onClick={() => onSave(report)}
+              disabled={isSaved}
+              className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors cursor-pointer ${
+                isSaved
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 cursor-default"
+                  : "border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
+              }`}
+            >
+              {isSaved ? (
+                <>
+                  <BookmarkCheck className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Saved in History</span>
+                </>
+              ) : (
+                <>
+                  <Bookmark className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>Save Report</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleCopy}
@@ -86,6 +122,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ report, onReset }) =
           >
             <Download className="h-3.5 w-3.5" />
             <span>Export .md</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
+            title="Print or Save as PDF"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Print</span>
           </button>
 
           <button
