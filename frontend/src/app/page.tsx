@@ -1,16 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/Header";
 import { ResearchForm } from "@/components/ResearchForm";
 import { EmptyState } from "@/components/EmptyState";
-import { checkBackendHealth, DEFAULT_API_BASE_URL } from "@/lib/api";
-import { ResearchRequest } from "@/types";
+import { LoadingStatus } from "@/components/LoadingStatus";
+import { ReportViewer } from "@/components/ReportViewer";
+import { SourcesCard } from "@/components/SourcesCard";
+import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
+import { ResearchRequest, ResearchResponse } from "@/types";
+import { AlertCircle, XCircle } from "lucide-react";
 
 export default function Home() {
   const [apiUrl] = useState<string>(DEFAULT_API_BASE_URL);
   const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentTopic, setCurrentTopic] = useState<string>("");
+  const [report, setReport] = useState<ResearchResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -30,12 +39,35 @@ export default function Home() {
     };
   }, [apiUrl]);
 
-  const handleRunResearch = (request: ResearchRequest) => {
+  const handleRunResearch = async (request: ResearchRequest) => {
     setIsLoading(true);
-    // Simulating initial research pipeline trigger
+    setError(null);
+    setCurrentTopic(request.topic);
+
+    // Smooth scroll down to progress/results area
     setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+
+    try {
+      const result = await generateResearch(request, apiUrl);
+      setReport(result);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to generate research report. Please verify backend connection.";
+      setError(errorMessage);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
+  };
+
+  const handleReset = () => {
+    setReport(null);
+    setError(null);
+    setCurrentTopic("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -47,20 +79,63 @@ export default function Home() {
           <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
         </section>
 
-        <section className="text-center py-6 space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
-            <span>Powered by Tavily, LangChain & OpenAI</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
-            Deep Research & Intelligence Synthesis
-          </h1>
-          <p className="mx-auto max-w-2xl text-slate-400 text-sm sm:text-base leading-relaxed">
-            Autonomous multi-pass agent that navigates live web sources, aggregates evidence,
-            and produces publication-grade executive briefs and academic research papers.
-          </p>
-        </section>
+        {/* Anchor for auto-scrolling to results / progress */}
+        <div ref={resultsRef} />
 
-        <EmptyState onQuickStart={() => {}} />
+        {/* Error notification banner */}
+        {error && (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-300 flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-rose-200">Research Pipeline Error</p>
+                <p className="mt-1 text-rose-300/90">{error}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="text-rose-400 hover:text-rose-200 p-1 cursor-pointer"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Live Loading Status */}
+        {isLoading && (
+          <section>
+            <LoadingStatus topic={currentTopic} />
+          </section>
+        )}
+
+        {/* Generated Report and Sources View */}
+        {report && !isLoading && (
+          <section className="space-y-6">
+            <ReportViewer report={report} onReset={handleReset} />
+            <SourcesCard sources={report.sources} />
+          </section>
+        )}
+
+        {/* Empty State / Welcome Exploration */}
+        {!report && !isLoading && (
+          <>
+            <section className="text-center py-6 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
+                <span>Powered by Tavily, LangChain & OpenAI</span>
+              </div>
+              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
+                Deep Research & Intelligence Synthesis
+              </h1>
+              <p className="mx-auto max-w-2xl text-slate-400 text-sm sm:text-base leading-relaxed">
+                Autonomous multi-pass agent that navigates live web sources, aggregates evidence,
+                and produces publication-grade executive briefs and academic research papers.
+              </p>
+            </section>
+
+            <EmptyState onQuickStart={handleRunResearch} />
+          </>
+        )}
       </main>
 
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
