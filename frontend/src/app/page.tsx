@@ -8,29 +8,41 @@ import { LoadingStatus } from "@/components/LoadingStatus";
 import { ReportViewer } from "@/components/ReportViewer";
 import { SourcesCard } from "@/components/SourcesCard";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
+import { SettingsModal } from "@/components/SettingsModal";
 import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
 import { getSavedReports, saveReport, deleteSavedReport, clearAllSavedReports } from "@/lib/storage";
 import { ResearchRequest, ResearchResponse, SavedReport } from "@/types";
 import { AlertCircle, XCircle } from "lucide-react";
 
 export default function Home() {
-  const [apiUrl] = useState<string>(DEFAULT_API_BASE_URL);
+  const [apiUrl, setApiUrl] = useState<string>(DEFAULT_API_BASE_URL);
   const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentTopic, setCurrentTopic] = useState<string>("");
   const [report, setReport] = useState<ResearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // History & saved state
+  // Settings & History state
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Read saved API URL if configured
+    if (typeof window !== "undefined") {
+      const storedApi = localStorage.getItem("nexus_api_url");
+      if (storedApi) {
+        setApiUrl(storedApi);
+      }
+    }
+
     // Load local storage saved reports
     setSavedReports(getSavedReports());
+  }, []);
 
+  useEffect(() => {
     let isMounted = true;
 
     async function pingStatus() {
@@ -47,6 +59,13 @@ export default function Home() {
       clearInterval(interval);
     };
   }, [apiUrl]);
+
+  const handleSaveApiUrl = (newUrl: string) => {
+    setApiUrl(newUrl);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nexus_api_url", newUrl);
+    }
+  };
 
   const handleRunResearch = async (request: ResearchRequest) => {
     setIsLoading(true);
@@ -112,6 +131,7 @@ export default function Home() {
         backendStatus={backendStatus}
         apiUrl={apiUrl}
         onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         savedCount={savedReports.length}
       />
 
@@ -192,6 +212,14 @@ export default function Home() {
         onSelectReport={handleSelectReport}
         onDeleteReport={handleDeleteReport}
         onClearAll={handleClearAllHistory}
+      />
+
+      {/* Backend Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentApiUrl={apiUrl}
+        onSaveApiUrl={handleSaveApiUrl}
       />
 
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
