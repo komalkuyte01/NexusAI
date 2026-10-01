@@ -19,6 +19,7 @@ import {
   Clock,
   Hash,
   Type,
+  FileCode,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
 
@@ -111,6 +112,19 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadJson = () => {
+    const filename = `${report.topic.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-data.json`;
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -193,6 +207,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           >
             <Download className="h-3.5 w-3.5" />
             <span>Export .md</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadJson}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
+            title="Export full response and citations as JSON"
+          >
+            <FileCode className="h-3.5 w-3.5" />
+            <span>Export .json</span>
           </button>
 
           <button
