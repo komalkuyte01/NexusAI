@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sparkles,
   RotateCcw,
@@ -10,6 +10,12 @@ import {
   Sliders,
   ChevronDown,
   ChevronUp,
+  History,
+  X,
+  Wand2,
+  BarChart3,
+  Cpu,
+  ShieldAlert,
 } from "lucide-react";
 import { ReportType, ResearchRequest } from "@/types";
 
@@ -41,16 +47,77 @@ const PRESET_TOPICS = [
   },
 ];
 
+interface ArchetypeTemplate {
+  name: string;
+  description: string;
+  type: ReportType;
+  requirements: string;
+  customFormat: string;
+}
+
+const ARCHETYPE_TEMPLATES: ArchetypeTemplate[] = [
+  {
+    name: "Market & Competitive Landscape",
+    description: "TAM, market drivers, key competitors & SWOT analysis",
+    type: "report",
+    requirements: "Focus on commercial market dynamics, top 5 competitors, venture funding trends, and 3-5 year growth projections.",
+    customFormat: "1. Executive Summary, 2. Market Size & Growth Drivers, 3. Competitive Landscape & Moats, 4. SWOT Analysis, 5. Strategic Recommendations",
+  },
+  {
+    name: "Technical Architecture & System Design",
+    description: "Deep engineering trade-offs, scalability benchmarks & security",
+    type: "research_paper",
+    requirements: "Deep technical dive into architectural paradigms, throughput/latency trade-offs, failure modes, and open-source ecosystems.",
+    customFormat: "1. Technical Abstract, 2. Architectural Overview, 3. Performance & Scalability Benchmarks, 4. Security & Fault Tolerance, 5. Future Engineering Directions",
+  },
+  {
+    name: "Academic Literature Synthesis",
+    description: "Peer-reviewed state-of-the-art, methodologies & open problems",
+    type: "research_paper",
+    requirements: "Review foundational papers, methodology comparisons, statistical rigor, and unanswered research questions.",
+    customFormat: "1. Abstract, 2. Introduction & Historical Context, 3. Comparative Methodologies, 4. Critical Findings & Evidence Synthesis, 5. Open Research Questions",
+  },
+  {
+    name: "Regulatory & Compliance Diligence",
+    description: "Legal frameworks, jurisdiction risks & corporate exposure",
+    type: "report",
+    requirements: "Assess regulatory compliance (US, EU, APAC), liability exposure, copyright/data governance, and enforcement actions.",
+    customFormat: "1. Executive Regulatory Overview, 2. Jurisdictional Mandates, 3. Liability & Risk Matrix, 4. Compliance Checklist, 5. Audit Recommendations",
+  },
+];
+
 export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState("");
   const [reportType, setReportType] = useState<ReportType>("report");
   const [requirements, setRequirements] = useState("");
   const [customFormat, setCustomFormat] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [recentQueries, setRecentQueries] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("nexus_recent_queries");
+      if (stored) {
+        setRecentQueries(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim() || isLoading) return;
+
+    // Save to recent queries
+    const updated = [topic.trim(), ...recentQueries.filter((q) => q.toLowerCase() !== topic.trim().toLowerCase())].slice(0, 5);
+    setRecentQueries(updated);
+    try {
+      localStorage.setItem("nexus_recent_queries", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
 
     onSubmit({
       topic: topic.trim(),
@@ -71,6 +138,25 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
     setTopic(preset.title);
     setReportType(preset.type);
     setRequirements(preset.requirements);
+  };
+
+  const handleApplyTemplate = (tmpl: ArchetypeTemplate) => {
+    setReportType(tmpl.type);
+    setRequirements(tmpl.requirements);
+    setCustomFormat(tmpl.customFormat);
+    setShowAdvanced(true);
+    setShowTemplates(false);
+  };
+
+  const handleRemoveRecent = (queryToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = recentQueries.filter((q) => q !== queryToRemove);
+    setRecentQueries(updated);
+    try {
+      localStorage.setItem("nexus_recent_queries", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
   };
 
   const handleReset = () => {
@@ -105,25 +191,68 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
               className="w-full resize-none rounded-xl bg-transparent px-4 py-3 text-sm text-slate-100 placeholder-slate-500 outline-none sm:text-base"
               disabled={isLoading}
             />
-            {topic && (
-              <div className="flex justify-end px-3 pb-2">
+            <div className="flex items-center justify-between px-3 pb-2 text-[11px] text-slate-500">
+              <span>{topic.length > 0 ? `${topic.length} characters` : ""}</span>
+              {topic && (
                 <button
                   type="button"
                   onClick={() => setTopic("")}
-                  className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                 >
                   Clear
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Recent Search Queries Recall */}
+        {recentQueries.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <History className="h-3 w-3 text-indigo-400" />
+                <span>Recent Topics:</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecentQueries([]);
+                  try {
+                    localStorage.removeItem("nexus_recent_queries");
+                  } catch {}
+                }}
+                className="text-[10px] text-slate-500 hover:text-slate-400 transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {recentQueries.map((rq, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setTopic(rq)}
+                  className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-xs text-slate-300 hover:border-indigo-500/50 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors"
+                >
+                  <span className="truncate max-w-[200px] sm:max-w-xs">{rq}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemoveRecent(rq, e)}
+                    className="text-slate-500 hover:text-slate-300 opacity-60 group-hover:opacity-100 cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Preset Topic Badges */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Zap className="h-3 w-3 text-amber-400" />
-            <span>Trending Research Sparks:</span>
+            <span>Trending Sparks:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {PRESET_TOPICS.map((preset, idx) => (
@@ -206,6 +335,48 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
               </div>
             </button>
           </div>
+        </div>
+
+        {/* Methodology / Prompt Templates Selector */}
+        <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <Wand2 className="h-3.5 w-3.5 text-indigo-400" />
+              <span>Research Archetype Presets</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+            >
+              {showTemplates ? "Hide Templates" : "Browse Archetypes"}
+            </button>
+          </div>
+
+          {showTemplates && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {ARCHETYPE_TEMPLATES.map((tmpl, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleApplyTemplate(tmpl)}
+                  className="flex flex-col text-left rounded-xl border border-slate-800/90 bg-slate-900/80 p-3 hover:border-indigo-500/60 hover:bg-indigo-950/20 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <span className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300">
+                      {tmpl.name}
+                    </span>
+                    <span className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-400">
+                      {tmpl.type === "research_paper" ? "Academic" : "Report"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                    {tmpl.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Collapsible Advanced Parameters */}
