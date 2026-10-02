@@ -21,7 +21,7 @@ def get_llm(user_gemini_key: Optional[str] = None):
         return ChatOpenAI(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             api_key=gemini_key,
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             temperature=0.2
         )
 
