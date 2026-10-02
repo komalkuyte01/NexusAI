@@ -13,6 +13,10 @@ import {
   LayoutGrid,
   List,
   Filter,
+  Download,
+  X,
+  FileCode,
+  BookOpenCheck,
 } from "lucide-react";
 import { SourceItem } from "@/types";
 
@@ -20,12 +24,16 @@ interface SourcesCardProps {
   sources: SourceItem[];
 }
 
+type CitationFormat = "bibtex" | "apa" | "csv" | "markdown";
+
 export const SourcesCard: React.FC<SourcesCardProps> = ({ sources }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [layoutMode, setLayoutMode] = useState<"grid" | "list">("grid");
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<CitationFormat>("bibtex");
 
   const getDomain = (url: string) => {
     try {
@@ -88,6 +96,103 @@ export const SourcesCard: React.FC<SourcesCardProps> = ({ sources }) => {
     }
   };
 
+  // Citation Export Generators
+  const generateBibTeX = () => {
+    return sources
+      .map((s, idx) => {
+        const domainClean = getDomain(s.url).replace(/[^a-z0-9]/gi, "");
+        const key = `source_${idx + 1}_${domainClean}`;
+        const title = (s.title || getDomain(s.url)).replace(/[{}]/g, "");
+        return `@online{${key},\n  title = {${title}},\n  url = {${s.url}},\n  urldate = {${new Date().toISOString().split("T")[0]}}\n}`;
+      })
+      .join("\n\n");
+  };
+
+  const generateAPA = () => {
+    const year = new Date().getFullYear();
+    const dateStr = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    return sources
+      .map((s) => {
+        const title = s.title || getDomain(s.url);
+        return `${title}. (${year}). Retrieved ${dateStr}, from ${s.url}`;
+      })
+      .join("\n\n");
+  };
+
+  const generateCSV = () => {
+    const headers = ["Index", "Title", "Domain", "URL", "Snippet"];
+    const rows = sources.map((s, idx) => [
+      `"${idx + 1}"`,
+      `"${(s.title || "").replace(/"/g, '""')}"`,
+      `"${getDomain(s.url)}"`,
+      `"${s.url}"`,
+      `"${(s.snippet || "").replace(/"/g, '""')}"`,
+    ]);
+    return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  };
+
+  const generateMarkdownList = () => {
+    return sources
+      .map((s, idx) => `${idx + 1}. [${s.title || getDomain(s.url)}](${s.url})${s.snippet ? ` — _${s.snippet}_` : ""}`)
+      .join("\n\n");
+  };
+
+  const getExportContent = () => {
+    switch (exportFormat) {
+      case "bibtex":
+        return generateBibTeX();
+      case "apa":
+        return generateAPA();
+      case "csv":
+        return generateCSV();
+      case "markdown":
+        return generateMarkdownList();
+      default:
+        return "";
+    }
+  };
+
+  const handleDownloadExport = () => {
+    const content = getExportContent();
+    let filename = "citations";
+    let mimeType = "text/plain";
+
+    if (exportFormat === "bibtex") {
+      filename = "citations.bib";
+      mimeType = "application/x-bibtex";
+    } else if (exportFormat === "apa") {
+      filename = "citations-apa.txt";
+      mimeType = "text/plain";
+    } else if (exportFormat === "csv") {
+      filename = "citations.csv";
+      mimeType = "text/csv";
+    } else {
+      filename = "citations.md";
+      mimeType = "text/markdown";
+    }
+
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyCurrentExport = async () => {
+    const text = getExportContent();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedFormat(exportFormat);
+      setTimeout(() => setCopiedFormat(null), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
   if (!sources || sources.length === 0) {
     return null;
   }
@@ -115,6 +220,17 @@ export const SourcesCard: React.FC<SourcesCardProps> = ({ sources }) => {
 
         {/* Header Action Tools */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Export Citations Dialog Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsExportModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 hover:bg-indigo-500/20 transition-colors cursor-pointer"
+            title="Export all citations in BibTeX, APA, CSV, or Markdown"
+          >
+            <BookOpenCheck className="h-3.5 w-3.5" />
+            <span>Export Citations</span>
+          </button>
+
           {/* Copy citations options */}
           <div className="inline-flex rounded-lg border border-slate-800 bg-slate-900 p-0.5">
             <button
@@ -311,6 +427,92 @@ export const SourcesCard: React.FC<SourcesCardProps> = ({ sources }) => {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Citation Export Modal */}
+      {isExportModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-150"
+        >
+          <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <BookOpenCheck className="h-5 w-5 text-indigo-400" />
+                <h3 className="text-base font-semibold text-white">Export Citations & Bibliography</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsExportModalOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Format Selection Tabs */}
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950 p-1">
+              {(["bibtex", "apa", "csv", "markdown"] as CitationFormat[]).map((fmt) => (
+                <button
+                  key={fmt}
+                  type="button"
+                  onClick={() => setExportFormat(fmt)}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-colors cursor-pointer ${
+                    exportFormat === fmt
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {fmt === "bibtex" ? "BibTeX (.bib)" : fmt === "apa" ? "APA 7th" : fmt === "csv" ? "CSV Table" : "Markdown"}
+                </button>
+              ))}
+            </div>
+
+            {/* Formatted Code Box */}
+            <div className="relative">
+              <pre className="max-h-64 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs text-slate-300 leading-relaxed select-all">
+                {getExportContent()}
+              </pre>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span className="text-xs text-slate-500 font-mono">
+                {sources.length} citations ready for publication
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyCurrentExport}
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-200 hover:bg-slate-750 hover:text-white transition-colors cursor-pointer"
+                >
+                  {copiedFormat === exportFormat ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="text-emerald-300">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 text-indigo-400" />
+                      <span>Copy to Clipboard</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadExport}
+                  className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/30 cursor-pointer"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download File</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
