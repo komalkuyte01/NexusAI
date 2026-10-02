@@ -27,28 +27,97 @@ body {
   background: rgba(148, 163, 184, 0.4);
 }
 
-/* Print Styles for pristine PDF exports */
+/* Professional Print Styles for Human-Made PDF Reports */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #111827 !important;
+  @page {
+    size: A4 portrait;
+    margin: 18mm 16mm 20mm 16mm;
   }
-  .no-print {
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide all website navigation, interactive controls, inputs, headers, and footers */
+  header,
+  footer,
+  aside,
+  form,
+  button,
+  nav#report-toc-nav,
+  .no-print,
+  .print-hidden,
+  [role="dialog"] {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
-  }
-  .print-paper {
-    box-shadow: none !important;
-    border: none !important;
+
+  /* Make report container fill the printed paper without dark backgrounds or outer borders */
+  main {
+    max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    background: transparent !important;
-    color: #111827 !important;
+  }
+
+  article {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #0f172a !important;
     max-width: 100% !important;
   }
-  .print-paper * {
-    color: #111827 !important;
+
+  /* Ensure text colors are high-contrast print ready */
+  article * {
+    color: #0f172a !important;
+    text-shadow: none !important;
+  }
+
+  /* Paragraphs and typography */
+  article p {
+    color: #1e293b !important;
+    font-size: 10.5pt !important;
+    line-height: 1.65 !important;
+    text-align: justify !important;
+    margin-bottom: 9pt !important;
+  }
+
+  article ul, article ol {
+    margin-bottom: 9pt !important;
+    padding-left: 22pt !important;
+  }
+
+  article li {
+    color: #1e293b !important;
+    font-size: 10.5pt !important;
+    line-height: 1.55 !important;
+    margin-bottom: 4pt !important;
+  }
+
+  article blockquote {
+    background: #f8fafc !important;
+    border-left: 3pt solid #2563eb !important;
+    padding: 6pt 12pt !important;
+    margin: 10pt 0 !important;
+    color: #334155 !important;
+    font-style: italic !important;
+  }
+
+  /* Headings print typography and orphan prevention */
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    color: #0f172a !important;
+  }
+
+  p, li, blockquote {
+    orphans: 3;
+    widows: 3;
   }
 }
