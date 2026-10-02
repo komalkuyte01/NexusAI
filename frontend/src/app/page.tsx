@@ -6,6 +6,7 @@ import { ResearchForm } from "@/components/ResearchForm";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingStatus } from "@/components/LoadingStatus";
 import { ReportViewer } from "@/components/ReportViewer";
+import { ResearchMetricsCard } from "@/components/ResearchMetricsCard";
 import { SourcesCard } from "@/components/SourcesCard";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -173,6 +174,7 @@ export default function Home() {
         {/* Generated Report and Sources View */}
         {report && !isLoading && (
           <section className="space-y-6">
+            <ResearchMetricsCard report={report} />
             <ReportViewer
               report={report}
               onReset={handleReset}
