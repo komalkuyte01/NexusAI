@@ -20,6 +20,10 @@ class ResearchRequest(BaseModel):
         default=None,
         description="Custom section structure, e.g. 'Introduction, Literature Review, Methodology, Results, Conclusion'"
     )
+    gemini_api_key: Optional[str] = Field(
+        default=None,
+        description="Optional Gemini API key passed from frontend settings"
+    )
 
 class SourceItem(BaseModel):
     title: str

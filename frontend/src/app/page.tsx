@@ -15,6 +15,7 @@ import { AlertCircle, XCircle, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [apiUrl, setApiUrl] = useState<string>(DEFAULT_API_BASE_URL);
+  const [geminiKey, setGeminiKey] = useState<string>("");
   const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentTopic, setCurrentTopic] = useState<string>("");
@@ -29,11 +30,15 @@ export default function Home() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Read saved API URL if configured
+    // Read saved API URL & Gemini Key if configured
     if (typeof window !== "undefined") {
       const storedApi = localStorage.getItem("nexus_api_url");
       if (storedApi) {
         setApiUrl(storedApi);
+      }
+      const storedGemini = localStorage.getItem("nexus_gemini_key");
+      if (storedGemini) {
+        setGeminiKey(storedGemini);
       }
     }
 
@@ -66,6 +71,17 @@ export default function Home() {
     }
   };
 
+  const handleSaveGeminiKey = (newKey: string) => {
+    setGeminiKey(newKey);
+    if (typeof window !== "undefined") {
+      if (newKey) {
+        localStorage.setItem("nexus_gemini_key", newKey);
+      } else {
+        localStorage.removeItem("nexus_gemini_key");
+      }
+    }
+  };
+
   const handleRunResearch = async (request: ResearchRequest) => {
     setIsLoading(true);
     setError(null);
@@ -77,7 +93,11 @@ export default function Home() {
     }, 100);
 
     try {
-      const result = await generateResearch(request, apiUrl);
+      const payload: ResearchRequest = {
+        ...request,
+        gemini_api_key: geminiKey.trim() || undefined,
+      };
+      const result = await generateResearch(payload, apiUrl);
       setReport(result);
     } catch (err: unknown) {
       const errorMessage =
@@ -226,6 +246,8 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)}
         currentApiUrl={apiUrl}
         onSaveApiUrl={handleSaveApiUrl}
+        currentGeminiKey={geminiKey}
+        onSaveGeminiKey={handleSaveGeminiKey}
       />
 
       <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-[11px] text-slate-600">

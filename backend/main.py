@@ -55,7 +55,8 @@ def research_endpoint(request: ResearchRequest):
             research_context=research_data["context"],
             report_type=request.report_type,
             requirements=request.requirements,
-            custom_format=request.custom_format
+            custom_format=request.custom_format,
+            user_gemini_key=request.gemini_api_key
         )
 
         return ResearchResponse(

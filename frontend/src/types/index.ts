@@ -11,6 +11,7 @@ export interface ResearchRequest {
   report_type: ReportType;
   requirements?: string;
   custom_format?: string;
+  gemini_api_key?: string;
 }
 
 export interface ResearchResponse {

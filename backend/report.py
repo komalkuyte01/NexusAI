@@ -8,26 +8,16 @@ from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv(find_dotenv())
 
-def get_llm():
+def get_llm(user_gemini_key: Optional[str] = None):
     """
     Select available LLM provider with fallback support:
-    1. Standard OpenAI (if OPENAI_API_KEY is valid)
-    2. Groq (if GROQ_API_KEY is set - free fast tier)
-    3. Google Gemini (if GEMINI_API_KEY or GOOGLE_API_KEY is set)
+    1. Google Gemini (Free tier, generous quota - priority #1)
+    2. Groq (Free fast tier)
+    3. OpenAI (GPT-4o-mini)
     """
-    # 1. Groq Check (Free and fast)
-    groq_key = os.getenv("GROQ_API_KEY")
-    if groq_key and not groq_key.startswith("placeholder"):
-        return ChatOpenAI(
-            base_url="https://api.groq.com/openai/v1",
-            api_key=groq_key,
-            model="llama-3.3-70b-versatile",
-            temperature=0.2
-        )
-
-    # 2. Gemini Check (OpenAI-compatible endpoint)
-    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if gemini_key and not gemini_key.startswith("placeholder"):
+    # 1. Gemini Check (From user request, GEMINI_API_KEY, or GOOGLE_API_KEY)
+    gemini_key = user_gemini_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_key and not gemini_key.startswith("placeholder") and gemini_key != "your_gemini_api_key":
         return ChatOpenAI(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             api_key=gemini_key,
@@ -35,12 +25,24 @@ def get_llm():
             temperature=0.2
         )
 
-    # 3. Default OpenAI
-    openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
-    if not openai_key or openai_key.startswith("placeholder") or openai_key == "your_openai_api_key":
-        raise ValueError("OPENAI_API_KEY is not configured in .env file.")
+    # 2. Groq Check (Free and fast)
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key and not groq_key.startswith("placeholder") and groq_key != "your_groq_api_key":
+        return ChatOpenAI(
+            base_url="https://api.groq.com/openai/v1",
+            api_key=groq_key,
+            model="llama-3.3-70b-versatile",
+            temperature=0.2
+        )
 
-    return ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=openai_key)
+    # 3. OpenAI
+    openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
+    if openai_key and not openai_key.startswith("placeholder") and openai_key != "your_openai_api_key":
+        return ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=openai_key)
+
+    raise ValueError(
+        "No active AI API key found. Please provide a GEMINI_API_KEY or OPENAI_API_KEY in .env or via Web Settings."
+    )
 
 STRUCTURE_RESEARCH_PAPER = """
 Please format the document as an academic Research Paper with the following sections:
@@ -145,14 +147,15 @@ def generate_report(
     research_context: str,
     report_type: str = "report",
     requirements: Optional[str] = None,
-    custom_format: Optional[str] = None
+    custom_format: Optional[str] = None,
+    user_gemini_key: Optional[str] = None
 ) -> str:
     """
     Generate a structured report or research paper using LangChain and ChatOpenAI/Groq/Gemini,
     with graceful fallback if quota is exhausted.
     """
     try:
-        llm = get_llm()
+        llm = get_llm(user_gemini_key)
 
         if custom_format and custom_format.strip():
             structure_instructions = f"Follow this specific custom format/sections requested by user:\n{custom_format.strip()}"

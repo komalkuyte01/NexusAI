@@ -21,6 +21,7 @@ import {
   Type,
   FileCode,
   ArrowUp,
+  FileDown,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
 
@@ -66,6 +67,48 @@ function extractHeadings(markdown: string): HeadingItem[] {
   }
 
   return headings;
+}
+
+function markdownToDocHtml(md: string): string {
+  if (!md) return "";
+  let html = md
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Headings
+  html = html.replace(/^### (.*$)/gim, '<h3 style="color:#334155; margin-top:14pt; font-size:13pt;">$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2 style="color:#1e40af; margin-top:18pt; font-size:16pt; border-bottom:1pt solid #cbd5e1; padding-bottom:4pt;">$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1 style="color:#0f172a; margin-top:10pt; font-size:22pt; border-bottom:2pt solid #2563eb; padding-bottom:6pt;">$1</h1>');
+
+  // Blockquotes
+  html = html.replace(/^>\s?(.*$)/gim, '<blockquote style="border-left:3pt solid #3b82f6; margin:10pt 0; padding:6pt 12pt; background:#f1f5f9; color:#475569; font-style:italic;">$1</blockquote>');
+
+  // Bold & Italic
+  html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+  html = html.replace(/__(.*?)__/gim, '<strong>$1</strong>');
+  html = html.replace(/_(.*?)_/gim, '<em>$1</em>');
+
+  // Links
+  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" style="color:#2563eb; text-decoration:underline;">$1</a>');
+
+  // Lists
+  html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li style="margin-bottom:4pt;">$1</li>');
+  html = html.replace(/^\s*\d+\.\s+(.*$)/gim, '<li style="margin-bottom:4pt;">$1</li>');
+  html = html.replace(/(<li[\s\S]*?<\/li>)/gim, '<ul style="margin:8pt 0 8pt 20pt;">$1</ul>');
+
+  // Paragraphs
+  html = html.split(/\n{2,}/).map(para => {
+    para = para.trim();
+    if (!para) return "";
+    if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<block')) {
+      return para;
+    }
+    return `<p style="margin:8pt 0; line-height:1.6; text-align:justify;">${para.replace(/\n/g, '<br/>')}</p>`;
+  }).join('\n');
+
+  return html;
 }
 
 export const ReportViewer: React.FC<ReportViewerProps> = ({
@@ -133,6 +176,53 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const handleDownloadJson = () => {
     const filename = `${report.topic.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-data.json`;
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadWord = () => {
+    const filename = `${report.topic.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-report.doc`;
+    const docHtml = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>${report.topic}</title>
+        <!--[if gte mso 9]>
+        <xml>
+          <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+          </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+          @page { size: 8.5in 11in; margin: 1in; }
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #0f172a; margin: 0; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom: 20pt; border-bottom: 2pt solid #e2e8f0; padding-bottom: 12pt;">
+          <h1 style="font-size: 24pt; color: #0f172a; margin-bottom: 6pt;">${report.topic}</h1>
+          <p style="font-size: 9pt; color: #64748b; margin: 0;">
+            <strong>Format:</strong> ${report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Report"} &middot; 
+            <strong>Date:</strong> ${formattedDate} &middot; 
+            <strong>Word Count:</strong> ~${wordCount} words
+          </p>
+        </div>
+        <div>
+          ${markdownToDocHtml(report.content)}
+        </div>
+      </body>
+      </html>
+    `;
+    const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -229,6 +319,26 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
           <button
             type="button"
+            onClick={handleDownloadWord}
+            className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3.5 py-2 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-500/20 hover:text-white cursor-pointer shadow-sm"
+            title="Download formatted Microsoft Word (.doc / .docx) file"
+          >
+            <FileText className="h-3.5 w-3.5 text-blue-400" />
+            <span>Export Word</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-white cursor-pointer shadow-sm"
+            title="Save as PDF or Print document"
+          >
+            <FileDown className="h-3.5 w-3.5 text-rose-400" />
+            <span>Export PDF</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleDownload}
             className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
           >
@@ -244,16 +354,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           >
             <FileCode className="h-3.5 w-3.5" />
             <span>Export .json</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
-            title="Print or Save as PDF"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Print</span>
           </button>
 
           <button
@@ -475,11 +575,20 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
         <button
           type="button"
+          onClick={handleDownloadWord}
+          title="Download Word (.doc) File"
+          className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+        >
+          <FileText className="h-4 w-4 text-blue-400" />
+        </button>
+
+        <button
+          type="button"
           onClick={handlePrint}
           title="Print or Save as PDF"
           className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
         >
-          <Printer className="h-4 w-4" />
+          <FileDown className="h-4 w-4 text-rose-400" />
         </button>
 
         <button
