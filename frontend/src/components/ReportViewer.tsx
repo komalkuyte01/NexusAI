@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -20,6 +20,7 @@ import {
   Hash,
   Type,
   FileCode,
+  ArrowUp,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
 
@@ -76,6 +77,23 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [copied, setCopied] = useState(false);
   const [showOutline, setShowOutline] = useState(true);
   const [fontSize, setFontSize] = useState<"standard" | "large">("standard");
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showFloatingDock, setShowFloatingDock] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        const progress = Math.min(100, Math.max(0, Math.round((window.scrollY / totalHeight) * 100)));
+        setScrollProgress(progress);
+        setShowFloatingDock(window.scrollY > 280);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const wordCount = useMemo(() => {
     return report.content ? report.content.trim().split(/\s+/).length : 0;
@@ -141,7 +159,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     : new Date().toLocaleDateString();
 
   return (
-    <article className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+    <>
+      {/* Top Reading Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-slate-900/60 pointer-events-none">
+        <div
+          className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      <article className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
       {/* Report Header Bar */}
       <div className="flex flex-col gap-4 border-b border-slate-800/80 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
@@ -290,8 +317,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       {/* Interactive Table of Contents Drawer/Panel */}
       {showOutline && headings.length > 0 && (
         <nav
+          id="report-toc-nav"
           aria-label="Table of Contents"
-          className="rounded-xl border border-indigo-500/20 bg-indigo-950/10 p-4 transition-all"
+          className="rounded-xl border border-indigo-500/20 bg-indigo-950/10 p-4 transition-all scroll-mt-20"
         >
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-indigo-300 mb-2.5">
             <Hash className="h-3.5 w-3.5" />
@@ -405,5 +433,65 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         </button>
       </div>
     </article>
-  );
+
+    {/* Floating Quick Action Dock */}
+    {showFloatingDock && (
+      <aside
+        aria-label="Quick reading actions"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-1.5 rounded-2xl border border-slate-700/80 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-xl transition-all"
+      >
+        <div
+          title="Scroll Progress"
+          className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold text-indigo-300 border-r border-slate-800"
+        >
+          <span>{scrollProgress}%</span>
+        </div>
+
+        {headings.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowOutline(true);
+              const outlineEl = document.getElementById("report-toc-nav");
+              if (outlineEl) {
+                outlineEl.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+            title="Jump to Table of Contents"
+            className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+          >
+            <ListTree className="h-4 w-4" />
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={handleCopy}
+          title="Copy Markdown"
+          className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+        >
+          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+        </button>
+
+        <button
+          type="button"
+          onClick={handlePrint}
+          title="Print or Save as PDF"
+          className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+        >
+          <Printer className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          title="Scroll back to top"
+          className="rounded-xl bg-indigo-600/90 p-2 text-white hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-600/30 cursor-pointer"
+        >
+          <ArrowUp className="h-4 w-4" />
+        </button>
+      </aside>
+    )}
+  </>
+);
 };
