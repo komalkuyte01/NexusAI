@@ -3,17 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/Header";
 import { ResearchForm } from "@/components/ResearchForm";
-import { EmptyState } from "@/components/EmptyState";
 import { LoadingStatus } from "@/components/LoadingStatus";
 import { ReportViewer } from "@/components/ReportViewer";
-import { ResearchMetricsCard } from "@/components/ResearchMetricsCard";
 import { SourcesCard } from "@/components/SourcesCard";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { SettingsModal } from "@/components/SettingsModal";
 import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
 import { getSavedReports, saveReport, deleteSavedReport, clearAllSavedReports } from "@/lib/storage";
 import { ResearchRequest, ResearchResponse, SavedReport } from "@/types";
-import { AlertCircle, XCircle } from "lucide-react";
+import { AlertCircle, XCircle, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [apiUrl, setApiUrl] = useState<string>(DEFAULT_API_BASE_URL);
@@ -127,7 +125,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
       <Header
         backendStatus={backendStatus}
         apiUrl={apiUrl}
@@ -136,22 +134,25 @@ export default function Home() {
         savedCount={savedReports.length}
       />
 
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 space-y-8">
-        <section>
-          <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
-        </section>
+      <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 space-y-6">
+        {/* If report or loading: Show minimal compact prompt at top */}
+        {(report || isLoading) && (
+          <section className="pt-2">
+            <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
+          </section>
+        )}
 
         {/* Anchor for auto-scrolling to results / progress */}
         <div ref={resultsRef} />
 
         {/* Error notification banner */}
         {error && (
-          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-300 flex items-start justify-between gap-3">
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-300 flex items-start justify-between gap-3 animate-in fade-in">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-rose-200">Research Pipeline Error</p>
-                <p className="mt-1 text-rose-300/90">{error}</p>
+                <p className="font-semibold text-rose-200">Research Pipeline Notice</p>
+                <p className="mt-1 text-rose-300/90 leading-relaxed">{error}</p>
               </div>
             </div>
             <button
@@ -166,7 +167,7 @@ export default function Home() {
 
         {/* Live Loading Status */}
         {isLoading && (
-          <section>
+          <section className="pt-4">
             <LoadingStatus topic={currentTopic} />
           </section>
         )}
@@ -174,7 +175,6 @@ export default function Home() {
         {/* Generated Report and Sources View */}
         {report && !isLoading && (
           <section className="space-y-6">
-            <ResearchMetricsCard report={report} />
             <ReportViewer
               report={report}
               onReset={handleReset}
@@ -185,24 +185,28 @@ export default function Home() {
           </section>
         )}
 
-        {/* Empty State / Welcome Exploration */}
+        {/* Minimal ChatGPT-like Center Hero State */}
         {!report && !isLoading && (
-          <>
-            <section className="text-center py-6 space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
-                <span>Powered by Tavily, LangChain & OpenAI</span>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 max-w-2xl mx-auto px-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-xl shadow-indigo-500/20">
+              <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-slate-950">
+                <Sparkles className="h-6 w-6 text-cyan-400" />
               </div>
-              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
-                Deep Research & Intelligence Synthesis
-              </h1>
-              <p className="mx-auto max-w-2xl text-slate-400 text-sm sm:text-base leading-relaxed">
-                Autonomous multi-pass agent that navigates live web sources, aggregates evidence,
-                and produces publication-grade executive briefs and academic research papers.
-              </p>
-            </section>
+            </div>
 
-            <EmptyState onQuickStart={handleRunResearch} />
-          </>
+            <div className="space-y-1.5">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+                What would you like to research?
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400">
+                Autonomous web research &middot; Grounded multi-source synthesis
+              </p>
+            </div>
+
+            <div className="w-full pt-2">
+              <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
+            </div>
+          </div>
         )}
       </main>
 
@@ -224,8 +228,8 @@ export default function Home() {
         onSaveApiUrl={handleSaveApiUrl}
       />
 
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        NexusResearch Agent &middot; Built with Next.js & FastAPI &middot; {new Date().getFullYear()}
+      <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-[11px] text-slate-600">
+        NexusResearch &middot; Autonomous Research Agent &middot; {new Date().getFullYear()}
       </footer>
     </div>
   );
