@@ -7,6 +7,27 @@ interface TextToken {
 }
 
 /**
+ * Clean topic string into a publication-grade filename slug.
+ */
+export function getDocumentFileSlug(rawTopic: string): string {
+  if (!rawTopic) return "research";
+
+  // Strip conversational prompt prefixes
+  const cleaned = rawTopic.trim().replace(
+    /^(please\s+)?(generate\s+(info|information|a\s+report|an\s+analysis)?\s+(on|about)?|write\s+(a\s+report|an\s+essay|an\s+analysis|about)?\s+(on|about)?|tell\s+me\s+about|research\s+(on|about)?|give\s+me\s+(info|information|details)\s+(on|about)?|what\s+is\s+the\s+condition\s+of|what\s+is|what\s+are|overview\s+of)\s+/i,
+    ""
+  ).trim();
+
+  const target = cleaned || rawTopic;
+  const slug = target
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug.slice(0, 60).replace(/-+$/, "") || "research";
+}
+
+/**
  * Tokenize a string into bold (**bold**) and normal text segments.
  */
 function tokenizeFormattedText(text: string): TextToken[] {
@@ -360,12 +381,10 @@ export function generatePublicationPdf(report: ResearchResponse): void {
     });
   }
 
-  // Trigger browser file download directly
-  const safeFilename = `${(report.topic || "research-report")
-    .slice(0, 35)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")}-report.pdf`;
+  // Trigger browser file download directly with topic-based naming
+  const fileSlug = getDocumentFileSlug(report.topic);
+  const suffix = isAcademic ? "research-paper" : "report";
+  const safeFilename = `${fileSlug}-${suffix}.pdf`;
 
   doc.save(safeFilename);
 }

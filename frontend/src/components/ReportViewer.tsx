@@ -24,7 +24,7 @@ import {
   Printer,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
-import { generatePublicationPdf } from "@/lib/generatePdf";
+import { generatePublicationPdf, getDocumentFileSlug } from "@/lib/generatePdf";
 
 interface ReportViewerProps {
   report: ResearchResponse;
@@ -253,7 +253,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
   const handleDownloadWord = () => {
     const isAcademic = report.report_type === "research_paper";
-    const filename = `${properTitle.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${isAcademic ? "paper" : "report"}.doc`;
+    const fileSlug = getDocumentFileSlug(report.topic);
+    const suffix = isAcademic ? "research-paper" : "report";
+    const filename = `${fileSlug}-${suffix}.doc`;
     
     const docHtml = isAcademic
       ? `
