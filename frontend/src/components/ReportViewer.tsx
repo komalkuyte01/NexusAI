@@ -252,8 +252,50 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   };
 
   const handleDownloadWord = () => {
-    const filename = `${properTitle.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-report.doc`;
-    const docHtml = `
+    const isAcademic = report.report_type === "research_paper";
+    const filename = `${properTitle.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${isAcademic ? "paper" : "report"}.doc`;
+    
+    const docHtml = isAcademic
+      ? `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>${properTitle}</title>
+        <!--[if gte mso 9]>
+        <xml>
+          <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+          </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+          @page { size: 8.5in 11in; margin: 1in; }
+          body { font-family: 'Times New Roman', Georgia, serif; font-size: 12pt; line-height: 1.5; color: #111827; margin: 0; text-align: justify; }
+          h1 { font-family: 'Times New Roman', serif; font-size: 20pt; text-align: center; margin-bottom: 8pt; font-weight: bold; }
+          .academic-meta { text-align: center; font-size: 10pt; color: #4b5563; margin-bottom: 18pt; line-height: 1.4; }
+          h2 { font-family: 'Times New Roman', serif; font-size: 13pt; margin-top: 18pt; font-weight: bold; border-bottom: 1pt solid #cbd5e1; padding-bottom: 3pt; }
+          h3 { font-family: 'Times New Roman', serif; font-size: 12pt; margin-top: 14pt; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom: 24pt;">
+          <h1>${properTitle}</h1>
+          <div class="academic-meta">
+            <strong>NexusResearch Autonomous AI Synthesis System</strong><br/>
+            Autonomous Web Intelligence & Empirical Synthesis Lab<br/>
+            <em>Synthesized via Grounded Autonomous Research Engine &middot; ~${wordCount} words</em>
+          </div>
+          <hr style="border: 0; border-top: 1pt solid #cbd5e1; margin-bottom: 16pt;" />
+        </div>
+        <div>
+          ${markdownToDocHtml(report.content)}
+        </div>
+      </body>
+      </html>
+    `
+      : `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset='utf-8'>
@@ -276,7 +318,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         <div style="margin-bottom: 20pt; border-bottom: 2pt solid #0f172a; padding-bottom: 12pt;">
           <h1 style="font-size: 24pt; color: #0f172a; margin-bottom: 6pt; border-bottom: 2pt solid #0f172a; padding-bottom: 6pt;">${properTitle}</h1>
           <p style="font-size: 9.5pt; color: #64748b; margin: 0;">
-            <strong>Format:</strong> ${report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Report"} &middot; 
+            <strong>Document Type:</strong> Executive Decision Report &middot; 
             <strong>Word Count:</strong> ~${wordCount} words
           </p>
         </div>
@@ -286,6 +328,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       </body>
       </html>
     `;
+
     const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -299,15 +342,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
   const handleExportPdf = () => {
     generatePublicationPdf(report);
-  };
-
-  const handleBrowserPrint = () => {
-    const originalTitle = document.title;
-    document.title = " ";
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 1000);
   };
 
   const scrollToHeading = (id: string) => {
@@ -339,8 +373,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2 flex-1">
               <div className="flex flex-wrap items-center gap-2 no-print print:hidden">
-                <span className="rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-xs font-medium text-indigo-300">
-                  {report.report_type === "research_paper" ? "Academic Paper" : "Executive Report"}
+                <span className={`rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
+                  report.report_type === "research_paper"
+                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-300"
+                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-300"
+                }`}>
+                  {report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Strategic Report"}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-slate-400 font-mono">
                   <Calendar className="h-3.5 w-3.5 text-slate-500" />
@@ -357,11 +395,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 {properTitle}
               </h1>
 
-              {/* Proper Title Underline Accent Bar */}
-              <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-400 rounded-full mt-2.5 print:hidden" />
+              {report.report_type === "research_paper" ? (
+                <div className="text-xs text-slate-400 space-y-0.5 pt-1">
+                  <p className="text-slate-300 font-medium">NexusResearch Autonomous AI Synthesis System</p>
+                  <p className="text-slate-500">Autonomous Web Intelligence & Empirical Synthesis Lab</p>
+                </div>
+              ) : (
+                /* Proper Title Underline Accent Bar */
+                <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-400 rounded-full mt-2.5 print:hidden" />
+              )}
             </div>
 
-            {/* Action Buttons (Hidden when printing/PDF) */}
+            {/* Action Buttons: Essential Core Actions Only */}
             <div className="flex flex-wrap items-center gap-2 no-print print:hidden">
               {onSave && (
                 <button
@@ -394,14 +439,14 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                <span>{copied ? "Copied!" : "Copy Markdown"}</span>
+                <span>{copied ? "Copied!" : "Copy"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleDownloadWord}
                 className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3.5 py-2 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-500/20 hover:text-white cursor-pointer shadow-sm"
-                title="Download formatted Microsoft Word (.doc / .docx) file"
+                title="Download formatted Microsoft Word (.doc) file"
               >
                 <FileText className="h-3.5 w-3.5 text-blue-400" />
                 <span>Export Word</span>
@@ -411,39 +456,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 type="button"
                 onClick={handleExportPdf}
                 className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-white cursor-pointer shadow-sm"
-                title="Download clean Word-like PDF (No browser URL, no date, proper Word margins)"
+                title="Download clean publication-grade PDF"
               >
                 <FileDown className="h-3.5 w-3.5 text-rose-400" />
                 <span>Export PDF</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleBrowserPrint}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
-                title="Send document directly to printer"
-              >
-                <Printer className="h-3.5 w-3.5 text-slate-400" />
-                <span>Print</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownload}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
-              >
-                <Download className="h-3.5 w-3.5" />
-                <span>Export .md</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadJson}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
-                title="Export full response and citations as JSON"
-              >
-                <FileCode className="h-3.5 w-3.5" />
-                <span>Export .json</span>
               </button>
 
               <button

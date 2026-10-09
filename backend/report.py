@@ -46,23 +46,61 @@ def get_llm(user_gemini_key: Optional[str] = None, model_name: Optional[str] = N
     )
 
 STRUCTURE_RESEARCH_PAPER = """
-Please format the document as an academic Research Paper with the following sections:
-# [Title]
+Please format the document as a formal academic Research Paper with the following exact structure:
+# [Paper Title]
+**Authors:** NexusResearch Autonomous AI Synthesis System
+**Affiliation:** Autonomous Web Intelligence & Empirical Synthesis Lab
+
 ## Abstract
-## Introduction
-## Main Content (divide into relevant subsections with detailed analysis)
-## Conclusion
-## References (list relevant source URLs and citations)
+(A concise, rigorous 150-250 word scholarly abstract summarizing the background, objectives, methodology, key findings, and implications)
+
+**Keywords:** (5-7 relevant academic keywords separated by commas)
+
+## 1. Introduction
+(Context, domain evolution, problem definition, and research significance)
+
+## 2. Literature Review & Current State of Research
+(Synthesis of recent published work, historical trajectory, and identified research gaps)
+
+## 3. Methodology & Synthesis Framework
+(Data gathering approach, empirical evidence triangulation, and verification criteria)
+
+## 4. Results & Discussion
+(Detailed findings, comparative technical analysis, quantitative/qualitative data synthesis, and critical discussion)
+
+## 5. Conclusion & Future Directions
+(Summary of core contributions, limitations, and future research trajectories)
+
+## 6. References
+(Rigorous academic citations formatted as [1], [2], [3] with source title, publisher/domain, and verifiable URL)
 """
 
 STRUCTURE_REPORT = """
-Please format the document as a professional Executive Report with the following sections:
-# [Title]
+Please format the document as a professional Executive & Strategic Report with the following exact structure:
+# [Report Title]
 ## Executive Summary
+(High-level strategic briefing and core executive takeaways)
+
 ## Introduction
-## Key Findings (detailed, data-driven points)
+(Background, market/technology context, and scope of the investigation)
+
+## Key Findings
+(Data-backed findings, empirical metrics, and core observations)
+
+## In-Depth Analysis
+(Deep qualitative and quantitative analysis, architectural trade-offs, and strategic implications)
+
+## Real-World Applications & Use Cases
+(Practical enterprise deployments, current implementations, and industry scenarios)
+
+## Challenges & Strategic Limitations
+(Technical hurdles, security/ethical risks, regulatory constraints, and adoption barriers)
+
 ## Strategic Conclusion & Recommendations
-## References (list relevant source URLs and citations)
+(Forward-looking summary and high-priority action items)
+
+## References
+(Comprehensive reference list with source titles and URLs)
 """
 
 def fallback_synthesize_report(

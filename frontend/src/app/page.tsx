@@ -5,7 +5,6 @@ import { Header } from "@/components/Header";
 import { ResearchForm } from "@/components/ResearchForm";
 import { LoadingStatus } from "@/components/LoadingStatus";
 import { ReportViewer } from "@/components/ReportViewer";
-import { SourcesCard } from "@/components/SourcesCard";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { SettingsModal } from "@/components/SettingsModal";
 import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
@@ -194,7 +193,7 @@ export default function Home() {
           </section>
         )}
 
-        {/* Generated Report and Sources View */}
+        {/* Generated Report View */}
         {report && !isLoading && (
           <section className="space-y-6">
             <ReportViewer
@@ -203,9 +202,6 @@ export default function Home() {
               onSave={handleSaveReport}
               isSaved={isCurrentReportSaved}
             />
-            <div className="no-print print:hidden">
-              <SourcesCard sources={report.sources} />
-            </div>
           </section>
         )}
 

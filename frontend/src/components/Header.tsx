@@ -97,18 +97,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Settings className="h-4 w-4" />
             </button>
           )}
-
-          {/* Swagger link */}
-          <a
-            href={`${apiUrl}/docs`}
-            target="_blank"
-            rel="noreferrer"
-            title="Open FastAPI Swagger Docs"
-            className="hidden md:flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
-          >
-            <span>Docs</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
       </div>
     </header>

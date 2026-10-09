@@ -142,19 +142,48 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       .join(" ");
   }
 
-  // Draw Document Title (Word-like 20pt bold, dark navy-slate)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.setTextColor(15, 23, 42); // #0f172a
-  const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
-  doc.text(titleLines, margin, y);
-  y += titleLines.length * 8 + 2;
+  const isAcademic = report.report_type === "research_paper";
 
-  // Title underline accent line (subtle Word-like rule)
-  doc.setDrawColor(203, 213, 225); // #cbd5e1
-  doc.setLineWidth(0.4);
-  doc.line(margin, y, margin + contentWidth, y);
-  y += 7;
+  if (isAcademic) {
+    // Academic Paper Title: Centered 18pt bold
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(17, 24, 39); // #111827
+    const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
+    doc.text(titleLines, pageWidth / 2, y, { align: "center" });
+    y += titleLines.length * 7.5 + 3;
+
+    // Academic Authors & Affiliation
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(75, 85, 99); // #4b5563
+    doc.text("NexusResearch Autonomous AI Synthesis System", pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128); // #6b7280
+    doc.text("Autonomous Web Intelligence & Empirical Synthesis Lab", pageWidth / 2, y, { align: "center" });
+    y += 6;
+
+    // Subtle academic divider line
+    doc.setDrawColor(209, 213, 219); // #d1d5db
+    doc.setLineWidth(0.3);
+    doc.line(margin + 15, y, margin + contentWidth - 15, y);
+    y += 7;
+  } else {
+    // Executive Report Title (Word-like 20pt bold, dark navy-slate)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42); // #0f172a
+    const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
+    doc.text(titleLines, margin, y);
+    y += titleLines.length * 8 + 2;
+
+    // Title underline accent line (subtle Word-like rule)
+    doc.setDrawColor(203, 213, 225); // #cbd5e1
+    doc.setLineWidth(0.4);
+    doc.line(margin, y, margin + contentWidth, y);
+    y += 7;
+  }
 
   // Process Document Body
   for (let i = 0; i < lines.length; i++) {
