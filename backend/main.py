@@ -7,6 +7,7 @@ import uvicorn
 from models import ResearchRequest, ResearchResponse, SourceItem
 from research import perform_research
 from report import generate_report
+from verification import evaluate_research_claims_and_metrics
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -46,7 +47,11 @@ def research_endpoint(request: ResearchRequest):
     """
     try:
         # Step 1: Web Research via Tavily
-        research_data = perform_research(query=request.topic, max_results=5)
+        research_data = perform_research(
+            query=request.topic,
+            max_results=6,
+            report_type=request.report_type
+        )
         sources_list = [SourceItem(**s) for s in research_data["sources"]]
 
         # Step 2: Report Generation via LangChain
@@ -59,12 +64,20 @@ def research_endpoint(request: ResearchRequest):
             user_gemini_key=request.gemini_api_key
         )
 
+        # Step 3: Claim Verification and Quality Metrics Evaluation
+        claims, metrics = evaluate_research_claims_and_metrics(
+            content=generated_content,
+            sources=sources_list
+        )
+
         return ResearchResponse(
             topic=request.topic,
             report_type=request.report_type,
             sources=sources_list,
             content=generated_content,
-            created_at=datetime.utcnow().isoformat() + "Z"
+            created_at=datetime.utcnow().isoformat() + "Z",
+            claims=claims,
+            metrics=metrics
         )
 
     except ValueError as e:
