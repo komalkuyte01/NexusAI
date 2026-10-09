@@ -21,8 +21,10 @@ import {
   FileCode,
   ArrowUp,
   FileDown,
+  Printer,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
+import { generatePublicationPdf } from "@/lib/generatePdf";
 
 interface ReportViewerProps {
   report: ResearchResponse;
@@ -275,7 +277,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           <h1 style="font-size: 24pt; color: #0f172a; margin-bottom: 6pt; border-bottom: 2pt solid #0f172a; padding-bottom: 6pt;">${properTitle}</h1>
           <p style="font-size: 9.5pt; color: #64748b; margin: 0;">
             <strong>Format:</strong> ${report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Report"} &middot; 
-            <strong>Date:</strong> ${formattedDate} &middot; 
             <strong>Word Count:</strong> ~${wordCount} words
           </p>
         </div>
@@ -296,8 +297,17 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handlePrintPdf = () => {
+  const handleExportPdf = () => {
+    generatePublicationPdf(report);
+  };
+
+  const handleBrowserPrint = () => {
+    const originalTitle = document.title;
+    document.title = " ";
     window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
   };
 
   const scrollToHeading = (id: string) => {
@@ -311,6 +321,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     ? new Date(report.created_at).toLocaleString()
     : new Date().toLocaleDateString();
 
+  const hasContentH1 = useMemo(() => /^#\s+/m.test(report.content), [report.content]);
+
   return (
     <>
       {/* Top Reading Progress Bar (Hidden in Print) */}
@@ -323,7 +335,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
       <article className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 print:bg-white print:border-none print:shadow-none print:p-0 print:m-0 print:space-y-4">
         {/* Document Publication Header */}
-        <div className="border-b-2 border-indigo-500/80 pb-5 print:border-b-2 print:border-slate-950 print:pb-4 print:mb-6">
+        <div className={`border-b-2 border-indigo-500/80 pb-5 ${hasContentH1 ? "print:hidden" : "print:border-b print:border-slate-300 print:pb-3 print:mb-4"}`}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2 flex-1">
               <div className="flex flex-wrap items-center gap-2 no-print print:hidden">
@@ -346,14 +358,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               </h1>
 
               {/* Proper Title Underline Accent Bar */}
-              <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-400 rounded-full mt-2.5 print:bg-slate-950 print:w-36 print:h-0.5" />
-
-              {/* Print-Only Document Metadata Line */}
-              <div className="hidden print:flex items-center justify-between text-[9pt] text-slate-600 font-sans pt-2 mt-2 border-t border-slate-200">
-                <span><strong>Document Type:</strong> {report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Decision Report"}</span>
-                <span><strong>Date:</strong> {formattedDate}</span>
-                <span><strong>Verified Grounding:</strong> Tavily Multi-Source Web Intelligence</span>
-              </div>
+              <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-400 rounded-full mt-2.5 print:hidden" />
             </div>
 
             {/* Action Buttons (Hidden when printing/PDF) */}
@@ -404,12 +409,22 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
               <button
                 type="button"
-                onClick={handlePrintPdf}
+                onClick={handleExportPdf}
                 className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-white cursor-pointer shadow-sm"
-                title="Save as clean PDF document"
+                title="Download clean Word-like PDF (No browser URL, no date, proper Word margins)"
               >
                 <FileDown className="h-3.5 w-3.5 text-rose-400" />
                 <span>Export PDF</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBrowserPrint}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
+                title="Send document directly to printer"
+              >
+                <Printer className="h-3.5 w-3.5 text-slate-400" />
+                <span>Print</span>
               </button>
 
               <button
@@ -669,8 +684,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
           <button
             type="button"
-            onClick={handlePrintPdf}
-            title="Save as clean PDF document"
+            onClick={handleExportPdf}
+            title="Download clean Word-like PDF document"
             className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
           >
             <FileDown className="h-4 w-4 text-rose-400" />

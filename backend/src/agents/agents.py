@@ -9,8 +9,18 @@ import os
 load_dotenv(find_dotenv())
 
 # Model Initialization
-api_key = os.getenv("OPENAI_API_KEY") or "placeholder-key-set-in-env"
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=api_key)
+gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+if gemini_key and not gemini_key.startswith("placeholder") and gemini_key != "your_gemini_api_key":
+    target_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    llm = ChatOpenAI(
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        api_key=gemini_key,
+        model=target_model,
+        temperature=0
+    )
+else:
+    api_key = os.getenv("OPENAI_API_KEY") or "placeholder-key-set-in-env"
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=api_key)
 
 
 # 1st Agent : Search Agent

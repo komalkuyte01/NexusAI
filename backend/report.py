@@ -8,20 +8,21 @@ from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv(find_dotenv())
 
-def get_llm(user_gemini_key: Optional[str] = None):
+def get_llm(user_gemini_key: Optional[str] = None, model_name: Optional[str] = None):
     """
     Select available LLM provider with fallback support:
-    1. Google Gemini (Free tier, generous quota - priority #1)
+    1. Google Gemini (gemini-2.5-flash-lite / flash-lite-latest - priority #1)
     2. Groq (Free fast tier)
     3. OpenAI (GPT-4o-mini)
     """
     # 1. Gemini Check (From user request, GEMINI_API_KEY, or GOOGLE_API_KEY)
     gemini_key = user_gemini_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if gemini_key and not gemini_key.startswith("placeholder") and gemini_key != "your_gemini_api_key":
+        target_model = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
         return ChatOpenAI(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             api_key=gemini_key,
-            model="gemini-2.5-flash",
+            model=target_model,
             temperature=0.2
         )
 
@@ -190,14 +191,27 @@ Be factual, in-depth, and well-structured.
 
         chain = prompt | llm | StrOutputParser()
 
-        report_content = chain.invoke({
-            "topic": topic,
-            "structure_instructions": structure_instructions,
-            "additional_reqs": additional_reqs,
-            "research_context": research_context
-        })
-
-        return report_content
+        try:
+            report_content = chain.invoke({
+                "topic": topic,
+                "structure_instructions": structure_instructions,
+                "additional_reqs": additional_reqs,
+                "research_context": research_context
+            })
+            return report_content
+        except Exception as invoke_err:
+            err_str = str(invoke_err)
+            # If Google API advises using gemini-flash-lite-latest / gemini-3.5-flash-lite or returns 404
+            if "no longer available" in err_str or "404" in err_str or "not found" in err_str.lower():
+                fallback_lite = get_llm(user_gemini_key, model_name="gemini-flash-lite-latest")
+                chain_fallback = prompt | fallback_lite | StrOutputParser()
+                return chain_fallback.invoke({
+                    "topic": topic,
+                    "structure_instructions": structure_instructions,
+                    "additional_reqs": additional_reqs,
+                    "research_context": research_context
+                })
+            raise invoke_err
 
     except Exception as e:
         err_msg = str(e)
