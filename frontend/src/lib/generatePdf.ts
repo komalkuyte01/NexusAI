@@ -369,6 +369,27 @@ export function generatePublicationPdf(report: ResearchResponse): void {
     y += 2.5;
   }
 
+  // Document Integrity & Quality Validation Stamp
+  if (report.metrics) {
+    checkPageBreak(20);
+    y += 5;
+    doc.setDrawColor(226, 232, 240);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, y, contentWidth, 14, 2, 2, "FD");
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text("VERIFICATION & ACCURACY AUDIT", margin + 4, y + 5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    const auditText = `Claim Support Rate: ${report.metrics.claim_support_rate}%   |   Citation Precision: ${report.metrics.citation_precision}%   |   Source Verification: ${report.metrics.source_verification_rate}%`;
+    doc.text(auditText, margin + 4, y + 10);
+    y += 18;
+  }
+
   // Add Word-like Page Numbers in Footer (No URL, No localhost:3000, No Date)
   const totalPages = doc.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {

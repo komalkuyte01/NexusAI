@@ -22,6 +22,9 @@ import {
   ArrowUp,
   FileDown,
   Printer,
+  ShieldCheck,
+  AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
 import { generatePublicationPdf, getDocumentFileSlug } from "@/lib/generatePdf";
@@ -183,6 +186,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [fontSize, setFontSize] = useState<"standard" | "large">("standard");
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showFloatingDock, setShowFloatingDock] = useState(false);
+  const [showClaimAudit, setShowClaimAudit] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -522,6 +526,75 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Verification & Quality Audit Bar (Hidden in Print) */}
+        {report.metrics && (
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-3.5 no-print print:hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span className="text-xs font-semibold text-emerald-200">Evidence Verification Audit</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300 font-mono">
+                  Claim Support: <strong>{report.metrics.claim_support_rate}%</strong>
+                </span>
+                <span className="rounded-md bg-cyan-500/10 px-2 py-0.5 text-cyan-300 font-mono">
+                  Citation Precision: <strong>{report.metrics.citation_precision}%</strong>
+                </span>
+                <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-indigo-300 font-mono">
+                  Verified Sources: <strong>{report.metrics.source_verification_rate}%</strong>
+                </span>
+                {report.claims && report.claims.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowClaimAudit(!showClaimAudit)}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 underline cursor-pointer ml-1"
+                  >
+                    {showClaimAudit ? "Hide Audit Details" : `Audit Trail (${report.claims.length})`}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Expandable Claim Details */}
+            {showClaimAudit && report.claims && report.claims.length > 0 && (
+              <div className="mt-3.5 space-y-2 border-t border-emerald-500/20 pt-3 text-xs">
+                {report.claims.map((c, idx) => (
+                  <div key={idx} className="rounded-lg bg-slate-900/60 p-2.5 border border-slate-800">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-medium text-slate-200">Claim {idx + 1}: &ldquo;{c.claim}&rdquo;</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                        c.verification_status === "Verified"
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          : c.verification_status === "Partially Verified"
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : c.verification_status === "Conflicting Evidence"
+                          ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                          : "bg-slate-700/40 text-slate-400 border border-slate-700"
+                      }`}>
+                        {c.verification_status}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                      <strong>Evidence Grounding:</strong> {c.evidence}
+                    </p>
+                    {c.source_url && (
+                      <a
+                        href={c.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] text-cyan-400 hover:underline inline-flex items-center gap-1 mt-1"
+                      >
+                        Source Link <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Interactive Table of Contents Drawer/Panel (Hidden in Print) */}
         {showOutline && headings.length > 0 && (
