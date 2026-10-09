@@ -73,17 +73,24 @@ def verify_claim_against_evidence(
 
             # Check if numerical values align
             if claim_numbers:
-                if claim_numbers.intersection(snippet_numbers):
+                # Distinguish metrics/percentages from standard 4-digit years
+                claim_metrics = {n for n in claim_numbers if "%" in n or len(n) < 4}
+                snippet_metrics = {n for n in snippet_numbers if "%" in n or len(n) < 4}
+
+                if claim_metrics and snippet_metrics and not claim_metrics.intersection(snippet_metrics):
+                    conflict_detected = True
+                elif claim_numbers.issubset(snippet_numbers):
                     number_matched = True
-                else:
-                    # Potential conflicting numbers
-                    if snippet_numbers and not claim_numbers.issubset(snippet_numbers):
-                        conflict_detected = True
+                elif claim_numbers.intersection(snippet_numbers):
+                    # Partially matched numbers
+                    number_matched = True
+                elif snippet_numbers:
+                    conflict_detected = True
 
     # Determine Status
     overlap_ratio = (max_overlap / max(1, len(claim_words)))
 
-    if conflict_detected and overlap_ratio >= 0.4:
+    if conflict_detected and overlap_ratio >= 0.35:
         status = "Conflicting Evidence"
         explanation = "Retrieved sources present divergent numerical metrics or contradictory findings on this point."
     elif overlap_ratio >= 0.45 and (number_matched or not claim_numbers):
