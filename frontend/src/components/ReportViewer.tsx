@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   AlertCircle,
   ExternalLink,
+  Pin,
 } from "lucide-react";
 import { ResearchResponse } from "@/types";
 import { generatePublicationPdf, getDocumentFileSlug } from "@/lib/generatePdf";
@@ -34,6 +35,8 @@ interface ReportViewerProps {
   onReset: () => void;
   onSave?: (report: ResearchResponse) => void;
   isSaved?: boolean;
+  isPinned?: boolean;
+  onTogglePin?: () => void;
 }
 
 interface HeadingItem {
@@ -180,6 +183,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   onReset,
   onSave,
   isSaved = false,
+  isPinned = false,
+  onTogglePin,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showOutline, setShowOutline] = useState(true);
@@ -436,6 +441,22 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                       <span>Save Report</span>
                     </>
                   )}
+                </button>
+              )}
+
+              {onTogglePin && (
+                <button
+                  type="button"
+                  onClick={onTogglePin}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors cursor-pointer ${
+                    isPinned
+                      ? "border-amber-500/40 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
+                      : "border-slate-700 bg-slate-900 text-slate-300 hover:border-amber-500/40 hover:text-amber-300 hover:bg-slate-800"
+                  }`}
+                  title={isPinned ? "Unpin this chat" : "Pin this chat to top of history"}
+                >
+                  <Pin className={`h-3.5 w-3.5 ${isPinned ? "fill-amber-400 text-amber-400" : "text-slate-400"}`} />
+                  <span>{isPinned ? "Pinned" : "Pin Chat"}</span>
                 </button>
               )}
 
@@ -763,6 +784,21 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           >
             {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
           </button>
+
+          {onTogglePin && (
+            <button
+              type="button"
+              onClick={onTogglePin}
+              title={isPinned ? "Unpin Chat" : "Pin Chat to Top"}
+              className={`rounded-xl p-2 transition-colors cursor-pointer ${
+                isPinned
+                  ? "text-amber-400 bg-amber-500/20 hover:bg-amber-500/30"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-amber-300"
+              }`}
+            >
+              <Pin className={`h-4 w-4 ${isPinned ? "fill-amber-400" : ""}`} />
+            </button>
+          )}
 
           <button
             type="button"
