@@ -8,7 +8,13 @@ import { ReportViewer } from "@/components/ReportViewer";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { SettingsModal } from "@/components/SettingsModal";
 import { checkBackendHealth, generateResearch, DEFAULT_API_BASE_URL } from "@/lib/api";
-import { getSavedReports, saveReport, deleteSavedReport, clearAllSavedReports } from "@/lib/storage";
+import {
+  getSavedReports,
+  saveReport,
+  deleteSavedReport,
+  clearAllSavedReports,
+  togglePinReport,
+} from "@/lib/storage";
 import { ResearchRequest, ResearchResponse, SavedReport } from "@/types";
 import { AlertCircle, XCircle, Sparkles } from "lucide-react";
 
@@ -19,6 +25,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentTopic, setCurrentTopic] = useState<string>("");
   const [report, setReport] = useState<ResearchResponse | null>(null);
+  const [activeReportId, setActiveReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Settings & History state
@@ -98,6 +105,11 @@ export default function Home() {
       };
       const result = await generateResearch(payload, apiUrl);
       setReport(result);
+
+      // Auto-save generated research chat so the user can check and verify history anytime
+      const savedItem = saveReport(result);
+      setActiveReportId(savedItem.id);
+      setSavedReports(getSavedReports());
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -111,6 +123,7 @@ export default function Home() {
 
   const handleReset = () => {
     setReport(null);
+    setActiveReportId(null);
     setError(null);
     setCurrentTopic("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -118,11 +131,13 @@ export default function Home() {
 
   const handleSaveReport = (rep: ResearchResponse) => {
     const saved = saveReport(rep);
-    setSavedReports((prev) => [saved, ...prev]);
+    setActiveReportId(saved.id);
+    setSavedReports(getSavedReports());
   };
 
   const handleSelectReport = (saved: SavedReport) => {
     setReport(saved);
+    setActiveReportId(saved.id);
     setError(null);
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -132,16 +147,43 @@ export default function Home() {
   const handleDeleteReport = (id: string) => {
     const updated = deleteSavedReport(id);
     setSavedReports(updated);
+    if (activeReportId === id) {
+      setActiveReportId(null);
+    }
   };
 
   const handleClearAllHistory = () => {
     clearAllSavedReports();
     setSavedReports([]);
+    setActiveReportId(null);
   };
 
-  const isCurrentReportSaved = Boolean(
-    report && savedReports.some((item) => item.topic === report.topic && item.content === report.content)
+  const handleTogglePin = (id: string) => {
+    const updated = togglePinReport(id);
+    setSavedReports(updated);
+  };
+
+  const handleToggleCurrentPin = () => {
+    if (!report) return;
+    const matching = savedReports.find(
+      (item) => item.id === activeReportId || (item.topic === report.topic && item.content === report.content)
+    );
+    if (matching) {
+      handleTogglePin(matching.id);
+    } else {
+      const saved = saveReport(report, true);
+      setActiveReportId(saved.id);
+      setSavedReports(getSavedReports());
+    }
+  };
+
+  const currentSavedItem = savedReports.find(
+    (item) => item.id === activeReportId || (report && item.topic === report.topic && item.content === report.content)
   );
+
+  const isCurrentReportSaved = Boolean(currentSavedItem);
+  const isCurrentReportPinned = Boolean(currentSavedItem?.isPinned);
+  const pinnedCount = savedReports.filter((item) => item.isPinned).length;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
@@ -152,6 +194,7 @@ export default function Home() {
           onOpenHistory={() => setIsHistoryOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
           savedCount={savedReports.length}
+          pinnedCount={pinnedCount}
         />
       </div>
 
@@ -201,6 +244,8 @@ export default function Home() {
               onReset={handleReset}
               onSave={handleSaveReport}
               isSaved={isCurrentReportSaved}
+              isPinned={isCurrentReportPinned}
+              onTogglePin={handleToggleCurrentPin}
             />
           </section>
         )}
@@ -238,6 +283,8 @@ export default function Home() {
         onSelectReport={handleSelectReport}
         onDeleteReport={handleDeleteReport}
         onClearAll={handleClearAllHistory}
+        onTogglePin={handleTogglePin}
+        activeReportId={activeReportId || undefined}
       />
 
       {/* Backend Settings Modal */}

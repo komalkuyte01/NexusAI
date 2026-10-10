@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Activity, History, Settings, ExternalLink } from "lucide-react";
+import { Sparkles, Activity, History, Settings, ExternalLink, Pin } from "lucide-react";
 
 interface HeaderProps {
   backendStatus: "online" | "offline" | "checking";
@@ -9,6 +9,7 @@ interface HeaderProps {
   onOpenHistory?: () => void;
   onOpenSettings?: () => void;
   savedCount?: number;
+  pinnedCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenHistory,
   onOpenSettings,
   savedCount = 0,
+  pinnedCount = 0,
 }) => {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
@@ -75,12 +77,21 @@ export const Header: React.FC<HeaderProps> = ({
           {onOpenHistory && (
             <button
               onClick={onOpenHistory}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white cursor-pointer"
             >
               <History className="h-3.5 w-3.5 text-slate-400" />
               <span>History</span>
+              {pinnedCount > 0 && (
+                <span
+                  title={`${pinnedCount} pinned chats`}
+                  className="flex items-center gap-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.2 text-[10px] font-bold text-amber-300"
+                >
+                  <Pin className="h-2.5 w-2.5 fill-amber-300" />
+                  {pinnedCount}
+                </span>
+              )}
               {savedCount > 0 && (
-                <span className="ml-1 rounded-full bg-indigo-500/20 px-1.5 py-0.2 text-[10px] font-bold text-indigo-300">
+                <span className="ml-0.5 rounded-full bg-indigo-500/20 px-1.5 py-0.2 text-[10px] font-bold text-indigo-300">
                   {savedCount}
                 </span>
               )}
@@ -92,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSettings}
               title="Configure API Endpoint"
-              className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+              className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white cursor-pointer"
             >
               <Settings className="h-4 w-4" />
             </button>
