@@ -50,4 +50,6 @@ export interface ResearchResponse {
 export interface SavedReport extends ResearchResponse {
   id: string;
   savedAt: string;
+  isPinned?: boolean;
+  pinnedAt?: string;
 }
