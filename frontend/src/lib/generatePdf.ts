@@ -250,7 +250,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       y += 4;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(13.5);
-      doc.setTextColor(30, 58, 138); // #1e3a8a (Word Heading 2 Navy)
+      doc.setTextColor(0, 0, 0); // Monochrome Heading 2
       const hLines = doc.splitTextToSize(headingText, contentWidth);
       doc.text(hLines, margin, y);
       y += hLines.length * 5.5 + 2.5;
@@ -264,7 +264,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       y += 3;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11.5);
-      doc.setTextColor(30, 41, 59); // #1e293b
+      doc.setTextColor(38, 38, 38);
       const hLines = doc.splitTextToSize(headingText, contentWidth);
       doc.text(hLines, margin, y);
       y += hLines.length * 5 + 2;
@@ -278,12 +278,12 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       const quoteStartY = y;
       doc.setFont("helvetica", "italic");
       doc.setFontSize(10);
-      doc.setTextColor(71, 85, 105); // #475569
+      doc.setTextColor(64, 64, 64);
       const qLines = doc.splitTextToSize(quoteText, contentWidth - 8);
       const quoteHeight = qLines.length * 4.8;
 
       // Draw left bar
-      doc.setDrawColor(59, 130, 246); // #3b82f6
+      doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.8);
       doc.line(margin + 1, quoteStartY - 3, margin + 1, quoteStartY + quoteHeight - 1);
 
@@ -304,11 +304,11 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       // Draw bullet point symbol
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.5);
-      doc.setTextColor(30, 58, 138); // #1e3a8a
+      doc.setTextColor(0, 0, 0);
       doc.text("\u2022", margin + 1, y);
 
       // Render bullet content with inline bold and indentation
-      doc.setTextColor(31, 41, 55); // #1f2937
+      doc.setTextColor(31, 41, 55);
       y = renderRichParagraph(
         doc,
         bulletContent,
@@ -333,7 +333,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(30, 58, 138);
+      doc.setTextColor(0, 0, 0);
       doc.text(prefix, margin + 0.5, y);
 
       doc.setTextColor(31, 41, 55);
@@ -354,7 +354,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
 
     // Standard Body Paragraph
     checkPageBreak(8);
-    doc.setTextColor(31, 41, 55); // #1f2937
+    doc.setTextColor(17, 24, 39);
     y = renderRichParagraph(
       doc,
       rawLine,
@@ -373,18 +373,18 @@ export function generatePublicationPdf(report: ResearchResponse): void {
   if (report.metrics) {
     checkPageBreak(20);
     y += 5;
-    doc.setDrawColor(226, 232, 240);
-    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(212, 212, 212);
+    doc.setFillColor(245, 245, 245);
     doc.roundedRect(margin, y, contentWidth, 14, 2, 2, "FD");
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    doc.setTextColor(30, 41, 59);
+    doc.setTextColor(0, 0, 0);
     doc.text("VERIFICATION & ACCURACY AUDIT", margin + 4, y + 5);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(64, 64, 64);
     const auditText = `Claim Support Rate: ${report.metrics.claim_support_rate}%   |   Citation Precision: ${report.metrics.citation_precision}%   |   Source Verification: ${report.metrics.source_verification_rate}%`;
     doc.text(auditText, margin + 4, y + 10);
     y += 18;
@@ -396,7 +396,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
     doc.setPage(p);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184); // #94a3b8
+    doc.setTextColor(115, 115, 115);
     doc.text(`Page ${p} of ${totalPages}`, pageWidth / 2, pageHeight - 10, {
       align: "center",
     });
