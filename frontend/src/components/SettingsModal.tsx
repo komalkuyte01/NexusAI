@@ -96,23 +96,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm transition-opacity">
-      <div className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm transition-opacity">
+      <div className="relative w-full max-w-lg rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <Server className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white border border-neutral-700">
+              <Server className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">API & Engine Settings</h2>
-              <p className="text-[11px] text-slate-400">Configure connection and free AI model credentials</p>
+              <h2 className="text-sm font-semibold text-white">API & Engine Settings</h2>
+              <p className="text-[11px] text-neutral-400">Configure connection and free AI model credentials</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-900 hover:text-white transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-900 hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -121,17 +121,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSave} className="space-y-4">
           {/* Gemini API Key Field */}
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/10 p-3.5 space-y-2">
+          <div className="rounded-xl border border-neutral-700 bg-neutral-900 p-3.5 space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="gemini-key-input" className="flex items-center gap-1.5 text-xs font-semibold text-cyan-300">
-                <KeyRound className="h-3.5 w-3.5" />
+              <label htmlFor="gemini-key-input" className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                <KeyRound className="h-3.5 w-3.5 text-neutral-300" />
                 <span>Google Gemini API Key (Recommended)</span>
               </label>
               <a
                 href="https://aistudio.google.com/app/apikey"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[11px] text-cyan-400 hover:underline"
+                className="flex items-center gap-1 text-[11px] text-neutral-300 hover:text-white hover:underline"
               >
                 <span>Get Free Key</span>
                 <ExternalLink className="h-3 w-3" />
@@ -143,16 +143,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={geminiKeyInput}
               onChange={(e) => setGeminiKeyInput(e.target.value)}
               placeholder="AIzaSy... (prevents OpenAI 429 quota exhaustion)"
-              className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+              className="w-full rounded-lg border border-neutral-700 bg-black px-3 py-2 font-mono text-xs text-white placeholder-neutral-500 focus:border-white focus:outline-none"
             />
-            <p className="text-[10px] text-slate-400">
+            <p className="text-[10px] text-neutral-400">
               Google Gemini has a generous free tier. Adding this key avoids credit exhaustion issues.
             </p>
           </div>
 
           {/* Backend URL Field */}
           <div>
-            <label htmlFor="api-url-input" className="block text-xs font-medium text-slate-300 mb-1.5">
+            <label htmlFor="api-url-input" className="block text-xs font-medium text-neutral-300 mb-1.5">
               Backend Endpoint URL
             </label>
             <input
@@ -161,56 +161,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder="http://127.0.0.1:8000"
-              className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 font-mono text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-xl border border-neutral-700 bg-black px-3.5 py-2 font-mono text-xs text-white placeholder-neutral-500 focus:border-white focus:outline-none"
             />
           </div>
 
           {/* Quick Presets */}
-          <div className="flex items-center gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 text-[11px] text-neutral-400">
             <span>Presets:</span>
             <button
               type="button"
               onClick={() => setUrlInput("http://127.0.0.1:8000")}
-              className="rounded bg-slate-900 px-2 py-0.5 font-mono text-indigo-300 hover:bg-slate-800 cursor-pointer"
+              className="rounded border border-neutral-700 bg-neutral-900 px-2 py-0.5 font-mono text-neutral-200 hover:bg-neutral-800 hover:text-white cursor-pointer"
             >
               127.0.0.1:8000
             </button>
             <button
               type="button"
               onClick={() => setUrlInput("http://localhost:8000")}
-              className="rounded bg-slate-900 px-2 py-0.5 font-mono text-indigo-300 hover:bg-slate-800 cursor-pointer"
+              className="rounded border border-neutral-700 bg-neutral-900 px-2 py-0.5 font-mono text-neutral-200 hover:bg-neutral-800 hover:text-white cursor-pointer"
             >
               localhost:8000
             </button>
           </div>
 
           {/* Live Ping Test Section */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-3 space-y-2">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-300">Connection Health Test</span>
+              <span className="text-xs font-medium text-neutral-300">Connection Health Test</span>
               <button
                 type="button"
                 onClick={() => handleTestConnection(urlInput)}
                 disabled={testing || !urlInput.trim()}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200 hover:bg-neutral-700 disabled:opacity-50 cursor-pointer"
               >
-                <RefreshCw className={`h-3 w-3 ${testing ? "animate-spin text-indigo-400" : ""}`} />
+                <RefreshCw className={`h-3 w-3 ${testing ? "animate-spin text-white" : ""}`} />
                 <span>{testing ? "Pinging..." : "Test Connection"}</span>
               </button>
             </div>
 
             {testResult.status && (
               <div
-                className={`flex items-center gap-2 rounded-lg p-2 text-xs ${
+                className={`flex items-center gap-2 rounded-lg p-2 text-xs border ${
                   testResult.status === "success"
-                    ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                    : "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+                    ? "border-white/40 bg-white/10 text-white"
+                    : "border-neutral-700 bg-neutral-900 text-neutral-300"
                 }`}
               >
                 {testResult.status === "success" ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />
                 ) : (
-                  <XCircle className="h-4 w-4 shrink-0 text-rose-400" />
+                  <XCircle className="h-4 w-4 shrink-0 text-neutral-400" />
                 )}
                 <div className="flex-1 leading-snug">
                   <span>{testResult.message}</span>
@@ -225,11 +225,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-between border-t border-slate-800 pt-3">
+          <div className="flex items-center justify-between border-t border-neutral-800 pt-3">
             <button
               type="button"
               onClick={handleResetDefault}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Reset Defaults</span>
@@ -239,13 +239,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-800 px-3.5 py-2 text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-slate-200 cursor-pointer"
+                className="rounded-xl border border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors cursor-pointer shadow-md shadow-indigo-600/30"
+                className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition-colors cursor-pointer shadow-md"
               >
                 Save Settings
               </button>
