@@ -25,24 +25,24 @@ export const LoadingStatus: React.FC<LoadingStatusProps> = ({ topic }) => {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-indigo-500/30 bg-slate-900/80 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 animate-pulse">
-            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white border border-neutral-700 animate-pulse">
+            <Loader2 className="h-5 w-5 animate-spin text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">
+            <h3 className="text-sm font-semibold text-white">
               Autonomous Agent In Progress
             </h3>
-            <p className="text-xs text-slate-400 max-w-xl truncate">
-              Investigating: <span className="text-indigo-300 font-medium">{topic}</span>
+            <p className="text-xs text-neutral-400 max-w-xl truncate">
+              Investigating: <span className="text-white font-medium">{topic}</span>
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs text-indigo-300 font-mono">
-          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-ping" />
+        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full bg-neutral-900 border border-neutral-700 px-3 py-1 text-xs text-neutral-200 font-mono">
+          <span className="h-2 w-2 rounded-full bg-white animate-ping" />
           Live Research
         </span>
       </div>
@@ -58,16 +58,16 @@ export const LoadingStatus: React.FC<LoadingStatusProps> = ({ topic }) => {
               key={idx}
               className={`rounded-xl border p-3.5 transition-all flex flex-col justify-between ${
                 isCurrent
-                  ? "border-indigo-500 bg-indigo-500/10 text-slate-100 shadow-md shadow-indigo-500/10"
+                  ? "border-white bg-white/10 text-white shadow-sm"
                   : isDone
-                  ? "border-slate-800 bg-slate-900/50 text-slate-300"
-                  : "border-slate-800/40 bg-slate-950/40 text-slate-600"
+                  ? "border-neutral-800 bg-neutral-900 text-neutral-300"
+                  : "border-neutral-800/40 bg-neutral-950 text-neutral-600"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <Icon
                   className={`h-4 w-4 ${
-                    isCurrent ? "text-indigo-400 animate-bounce" : isDone ? "text-emerald-400" : "text-slate-600"
+                    isCurrent ? "text-white animate-bounce" : isDone ? "text-neutral-300" : "text-neutral-600"
                   }`}
                 />
                 <span className="text-[10px] font-mono font-medium">
@@ -80,7 +80,7 @@ export const LoadingStatus: React.FC<LoadingStatusProps> = ({ topic }) => {
         })}
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3 text-xs text-slate-400 flex items-center justify-between">
+      <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 px-4 py-3 text-xs text-neutral-400 flex items-center justify-between">
         <span>Deep web scraping, verification and multi-pass synthesis usually take 15–30 seconds.</span>
       </div>
     </div>
