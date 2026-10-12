@@ -6,7 +6,6 @@ import remarkGfm from "remark-gfm";
 import {
   Copy,
   Check,
-  Download,
   FileText,
   Calendar,
   RotateCcw,
@@ -18,12 +17,9 @@ import {
   Clock,
   Hash,
   Type,
-  FileCode,
   ArrowUp,
   FileDown,
-  Printer,
   ShieldCheck,
-  AlertCircle,
   ExternalLink,
   Pin,
 } from "lucide-react";
@@ -46,13 +42,12 @@ interface HeadingItem {
 }
 
 /**
- * Transforms raw prompt topics (e.g. "generate info on condition of ai") into a
- * clean, publication-grade proper title (e.g. "Condition of AI").
+ * Transforms raw prompt topics into a clean, publication-grade proper title.
  */
 export function formatProperHeading(rawTopic: string): string {
   if (!rawTopic) return "Research Report";
 
-  // Strip conversational prompt prefixes like "generate info on", "tell me about", "research on", etc.
+  // Strip conversational prompt prefixes
   let cleaned = rawTopic.trim().replace(
     /^(please\s+)?(generate\s+(info|information|a\s+report|an\s+analysis)?\s+(on|about)?|write\s+(a\s+report|an\s+essay|an\s+analysis|about)?\s+(on|about)?|tell\s+me\s+about|research\s+(on|about)?|give\s+me\s+(info|information|details)\s+(on|about)?|what\s+is\s+the\s+condition\s+of|what\s+is|what\s+are|overview\s+of)\s+/i,
     ""
@@ -60,12 +55,10 @@ export function formatProperHeading(rawTopic: string): string {
 
   if (!cleaned) cleaned = rawTopic.trim();
 
-  // Minor prepositions and conjunctions to keep lowercase in title (unless first or last word)
   const minorWords = new Set([
     "a", "an", "and", "as", "at", "but", "by", "for", "in", "nor", "of", "on", "or", "so", "the", "to", "up", "with", "yet"
   ]);
 
-  // Known acronyms to format in proper uppercase
   const acronyms: Record<string, string> = {
     ai: "AI",
     ml: "ML",
@@ -143,13 +136,13 @@ function markdownToDocHtml(md: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Headings
-  html = html.replace(/^### (.*$)/gim, '<h3 style="color:#334155; margin-top:14pt; font-size:13pt;">$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2 style="color:#1e40af; margin-top:18pt; font-size:16pt; border-bottom:1pt solid #cbd5e1; padding-bottom:4pt;">$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1 style="color:#0f172a; margin-top:10pt; font-size:22pt; border-bottom:2pt solid #2563eb; padding-bottom:6pt;">$1</h1>');
+  // Headings in monochrome
+  html = html.replace(/^### (.*$)/gim, '<h3 style="color:#262626; margin-top:14pt; font-size:13pt;">$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2 style="color:#000000; margin-top:18pt; font-size:16pt; border-bottom:1pt solid #737373; padding-bottom:4pt;">$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1 style="color:#000000; margin-top:10pt; font-size:22pt; border-bottom:2pt solid #000000; padding-bottom:6pt;">$1</h1>');
 
-  // Blockquotes
-  html = html.replace(/^>\s?(.*$)/gim, '<blockquote style="border-left:3pt solid #3b82f6; margin:10pt 0; padding:6pt 12pt; background:#f1f5f9; color:#475569; font-style:italic;">$1</blockquote>');
+  // Blockquotes in monochrome
+  html = html.replace(/^>\s?(.*$)/gim, '<blockquote style="border-left:3pt solid #000000; margin:10pt 0; padding:6pt 12pt; background:#f5f5f5; color:#262626; font-style:italic;">$1</blockquote>');
 
   // Bold & Italic
   html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
@@ -158,7 +151,7 @@ function markdownToDocHtml(md: string): string {
   html = html.replace(/_(.*?)_/gim, '<em>$1</em>');
 
   // Links
-  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" style="color:#2563eb; text-decoration:underline;">$1</a>');
+  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" style="color:#000000; text-decoration:underline; font-weight:bold;">$1</a>');
 
   // Lists
   html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li style="margin-bottom:4pt;">$1</li>');
@@ -234,32 +227,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }
   };
 
-  const handleDownload = () => {
-    const filename = `${properTitle.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-report.md`;
-    const blob = new Blob([report.content], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadJson = () => {
-    const filename = `${properTitle.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-data.json`;
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleDownloadWord = () => {
     const isAcademic = report.report_type === "research_paper";
     const fileSlug = getDocumentFileSlug(report.topic);
@@ -283,11 +250,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         <![endif]-->
         <style>
           @page { size: 8.5in 11in; margin: 1in; }
-          body { font-family: 'Times New Roman', Georgia, serif; font-size: 12pt; line-height: 1.5; color: #111827; margin: 0; text-align: justify; }
-          h1 { font-family: 'Times New Roman', serif; font-size: 20pt; text-align: center; margin-bottom: 8pt; font-weight: bold; }
-          .academic-meta { text-align: center; font-size: 10pt; color: #4b5563; margin-bottom: 18pt; line-height: 1.4; }
-          h2 { font-family: 'Times New Roman', serif; font-size: 13pt; margin-top: 18pt; font-weight: bold; border-bottom: 1pt solid #cbd5e1; padding-bottom: 3pt; }
-          h3 { font-family: 'Times New Roman', serif; font-size: 12pt; margin-top: 14pt; font-weight: bold; }
+          body { font-family: 'Times New Roman', Georgia, serif; font-size: 12pt; line-height: 1.5; color: #000000; margin: 0; text-align: justify; }
+          h1 { font-family: 'Times New Roman', serif; font-size: 20pt; text-align: center; margin-bottom: 8pt; font-weight: bold; color: #000000; }
+          .academic-meta { text-align: center; font-size: 10pt; color: #404040; margin-bottom: 18pt; line-height: 1.4; }
+          h2 { font-family: 'Times New Roman', serif; font-size: 13pt; margin-top: 18pt; font-weight: bold; border-bottom: 1pt solid #737373; padding-bottom: 3pt; color: #000000; }
+          h3 { font-family: 'Times New Roman', serif; font-size: 12pt; margin-top: 14pt; font-weight: bold; color: #262626; }
         </style>
       </head>
       <body>
@@ -298,7 +265,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             Autonomous Web Intelligence & Empirical Synthesis Lab<br/>
             <em>Synthesized via Grounded Autonomous Research Engine &middot; ~${wordCount} words</em>
           </div>
-          <hr style="border: 0; border-top: 1pt solid #cbd5e1; margin-bottom: 16pt;" />
+          <hr style="border: 0; border-top: 1pt solid #737373; margin-bottom: 16pt;" />
         </div>
         <div>
           ${markdownToDocHtml(report.content)}
@@ -322,13 +289,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         <![endif]-->
         <style>
           @page { size: 8.5in 11in; margin: 1in; }
-          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #0f172a; margin: 0; }
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000000; margin: 0; }
         </style>
       </head>
       <body>
-        <div style="margin-bottom: 20pt; border-bottom: 2pt solid #0f172a; padding-bottom: 12pt;">
-          <h1 style="font-size: 24pt; color: #0f172a; margin-bottom: 6pt; border-bottom: 2pt solid #0f172a; padding-bottom: 6pt;">${properTitle}</h1>
-          <p style="font-size: 9.5pt; color: #64748b; margin: 0;">
+        <div style="margin-bottom: 20pt; border-bottom: 2pt solid #000000; padding-bottom: 12pt;">
+          <h1 style="font-size: 24pt; color: #000000; margin-bottom: 6pt; border-bottom: 2pt solid #000000; padding-bottom: 6pt;">${properTitle}</h1>
+          <p style="font-size: 9.5pt; color: #525252; margin: 0;">
             <strong>Document Type:</strong> Executive Decision Report &middot; 
             <strong>Word Count:</strong> ~${wordCount} words
           </p>
@@ -371,49 +338,45 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   return (
     <>
       {/* Top Reading Progress Bar (Hidden in Print) */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-slate-900/60 pointer-events-none no-print print:hidden">
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-neutral-900 pointer-events-none no-print print:hidden">
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-150"
+          className="h-full bg-white transition-all duration-150"
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 print:bg-white print:border-none print:shadow-none print:p-0 print:m-0 print:space-y-4">
+      <article className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 print:bg-white print:border-none print:shadow-none print:p-0 print:m-0 print:space-y-4">
         {/* Document Publication Header */}
-        <div className={`border-b-2 border-indigo-500/80 pb-5 ${hasContentH1 ? "print:hidden" : "print:border-b print:border-slate-300 print:pb-3 print:mb-4"}`}>
+        <div className={`border-b border-neutral-800 pb-5 ${hasContentH1 ? "print:hidden" : "print:border-b print:border-neutral-300 print:pb-3 print:mb-4"}`}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2 flex-1">
               <div className="flex flex-wrap items-center gap-2 no-print print:hidden">
-                <span className={`rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                  report.report_type === "research_paper"
-                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-300"
-                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-300"
-                }`}>
+                <span className="rounded-md border border-neutral-700 bg-neutral-900 px-2.5 py-0.5 text-xs font-semibold text-neutral-200">
                   {report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Strategic Report"}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-slate-400 font-mono">
-                  <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                <span className="flex items-center gap-1 text-xs text-neutral-400 font-mono">
+                  <Calendar className="h-3.5 w-3.5 text-neutral-500" />
                   {formattedDate}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-slate-500 font-mono">
-                  <Clock className="h-3 w-3 text-slate-500" />
+                <span className="flex items-center gap-1 text-xs text-neutral-400 font-mono">
+                  <Clock className="h-3 w-3 text-neutral-500" />
                   {readingTime} min read (~{wordCount} words)
                 </span>
               </div>
 
               {/* Proper Heading Title */}
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white print:text-slate-950 print:text-3xl leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white print:text-black print:text-3xl leading-tight">
                 {properTitle}
               </h1>
 
               {report.report_type === "research_paper" ? (
-                <div className="text-xs text-slate-400 space-y-0.5 pt-1">
-                  <p className="text-slate-300 font-medium">NexusResearch Autonomous AI Synthesis System</p>
-                  <p className="text-slate-500">Autonomous Web Intelligence & Empirical Synthesis Lab</p>
+                <div className="text-xs text-neutral-400 space-y-0.5 pt-1">
+                  <p className="text-neutral-200 font-medium">NexusResearch Autonomous AI Synthesis System</p>
+                  <p className="text-neutral-500">Autonomous Web Intelligence & Empirical Synthesis Lab</p>
                 </div>
               ) : (
                 /* Proper Title Underline Accent Bar */
-                <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-400 rounded-full mt-2.5 print:hidden" />
+                <div className="h-1 w-20 bg-white rounded-full mt-2.5 print:hidden" />
               )}
             </div>
 
@@ -426,18 +389,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   disabled={isSaved}
                   className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors cursor-pointer ${
                     isSaved
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 cursor-default"
-                      : "border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
+                      ? "border-white/40 bg-white/15 text-white cursor-default font-semibold"
+                      : "border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-neutral-500 hover:bg-neutral-800"
                   }`}
                 >
                   {isSaved ? (
                     <>
-                      <BookmarkCheck className="h-3.5 w-3.5 text-emerald-400" />
+                      <BookmarkCheck className="h-3.5 w-3.5 text-white" />
                       <span>Saved in History</span>
                     </>
                   ) : (
                     <>
-                      <Bookmark className="h-3.5 w-3.5 text-indigo-400" />
+                      <Bookmark className="h-3.5 w-3.5 text-neutral-400" />
                       <span>Save Report</span>
                     </>
                   )}
@@ -450,12 +413,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   onClick={onTogglePin}
                   className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors cursor-pointer ${
                     isPinned
-                      ? "border-amber-500/40 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
-                      : "border-slate-700 bg-slate-900 text-slate-300 hover:border-amber-500/40 hover:text-amber-300 hover:bg-slate-800"
+                      ? "border-white bg-white text-black font-semibold"
+                      : "border-neutral-700 bg-neutral-900 text-neutral-300 hover:border-neutral-500 hover:text-white hover:bg-neutral-800"
                   }`}
                   title={isPinned ? "Unpin this chat" : "Pin this chat to top of history"}
                 >
-                  <Pin className={`h-3.5 w-3.5 ${isPinned ? "fill-amber-400 text-amber-400" : "text-slate-400"}`} />
+                  <Pin className={`h-3.5 w-3.5 ${isPinned ? "fill-black text-black" : "text-neutral-400"}`} />
                   <span>{isPinned ? "Pinned" : "Pin Chat"}</span>
                 </button>
               )}
@@ -463,36 +426,36 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-200 transition-colors hover:border-neutral-500 hover:bg-neutral-800 cursor-pointer"
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5 text-neutral-400" />}
                 <span>{copied ? "Copied!" : "Copy"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleDownloadWord}
-                className="flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3.5 py-2 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-500/20 hover:text-white cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-200 transition-colors hover:border-white hover:bg-neutral-800 hover:text-white cursor-pointer shadow-sm"
                 title="Download formatted Microsoft Word (.doc) file"
               >
-                <FileText className="h-3.5 w-3.5 text-blue-400" />
+                <FileText className="h-3.5 w-3.5 text-neutral-300" />
                 <span>Export Word</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleExportPdf}
-                className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-white cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 rounded-xl border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-200 transition-colors hover:border-white hover:bg-neutral-800 hover:text-white cursor-pointer shadow-sm"
                 title="Download clean publication-grade PDF"
               >
-                <FileDown className="h-3.5 w-3.5 text-rose-400" />
+                <FileDown className="h-3.5 w-3.5 text-neutral-300" />
                 <span>Export PDF</span>
               </button>
 
               <button
                 type="button"
                 onClick={onReset}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-800/80 px-3.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:bg-neutral-800 hover:text-white cursor-pointer"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>New Search</span>
@@ -502,15 +465,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         </div>
 
         {/* Reader Controls Bar: Outline toggle & Font size (Hidden in Print) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-900/40 px-4 py-2.5 text-xs text-slate-300 no-print print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 py-2.5 text-xs text-neutral-300 no-print print:hidden">
           <div className="flex items-center gap-2">
             {headings.length > 0 && (
               <button
                 type="button"
                 onClick={() => setShowOutline(!showOutline)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-800/60 px-2.5 py-1 text-xs text-slate-200 hover:border-slate-600 hover:text-white transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200 hover:border-neutral-500 hover:text-white transition-colors cursor-pointer"
               >
-                <ListTree className="h-3.5 w-3.5 text-indigo-400" />
+                <ListTree className="h-3.5 w-3.5 text-white" />
                 <span>Table of Contents ({headings.length})</span>
                 {showOutline ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
@@ -519,16 +482,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
           {/* Text size selector */}
           <div className="flex items-center gap-2">
-            <Type className="h-3.5 w-3.5 text-slate-500" />
-            <span className="text-[11px] text-slate-400">Typography:</span>
-            <div className="inline-flex rounded-lg border border-slate-800 bg-slate-900 p-0.5">
+            <Type className="h-3.5 w-3.5 text-neutral-500" />
+            <span className="text-[11px] text-neutral-400">Typography:</span>
+            <div className="inline-flex rounded-lg border border-neutral-800 bg-neutral-950 p-0.5">
               <button
                 type="button"
                 onClick={() => setFontSize("standard")}
                 className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
                   fontSize === "standard"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-white text-black shadow-sm font-semibold"
+                    : "text-neutral-400 hover:text-white"
                 }`}
               >
                 Default
@@ -538,8 +501,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 onClick={() => setFontSize("large")}
                 className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
                   fontSize === "large"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-white text-black shadow-sm font-semibold"
+                    : "text-neutral-400 hover:text-white"
                 }`}
               >
                 Large
@@ -550,27 +513,27 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
         {/* Verification & Quality Audit Bar (Hidden in Print) */}
         {report.metrics && (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-3.5 no-print print:hidden">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-3.5 no-print print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-emerald-200">Evidence Verification Audit</span>
+                <ShieldCheck className="h-4 w-4 text-white" />
+                <span className="text-xs font-semibold text-white">Evidence Verification Audit</span>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 text-xs">
-                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-300 font-mono">
+                <span className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-neutral-200 font-mono">
                   Claim Support: <strong>{report.metrics.claim_support_rate}%</strong>
                 </span>
-                <span className="rounded-md bg-cyan-500/10 px-2 py-0.5 text-cyan-300 font-mono">
+                <span className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-neutral-200 font-mono">
                   Citation Precision: <strong>{report.metrics.citation_precision}%</strong>
                 </span>
-                <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-indigo-300 font-mono">
+                <span className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-neutral-200 font-mono">
                   Verified Sources: <strong>{report.metrics.source_verification_rate}%</strong>
                 </span>
                 {report.claims && report.claims.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setShowClaimAudit(!showClaimAudit)}
-                    className="text-xs text-emerald-400 hover:text-emerald-300 underline cursor-pointer ml-1"
+                    className="text-xs text-white hover:underline underline cursor-pointer ml-1"
                   >
                     {showClaimAudit ? "Hide Audit Details" : `Audit Trail (${report.claims.length})`}
                   </button>
@@ -580,32 +543,30 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
             {/* Expandable Claim Details */}
             {showClaimAudit && report.claims && report.claims.length > 0 && (
-              <div className="mt-3.5 space-y-2 border-t border-emerald-500/20 pt-3 text-xs">
+              <div className="mt-3.5 space-y-2 border-t border-neutral-800 pt-3 text-xs">
                 {report.claims.map((c, idx) => (
-                  <div key={idx} className="rounded-lg bg-slate-900/60 p-2.5 border border-slate-800">
+                  <div key={idx} className="rounded-lg bg-neutral-950 p-2.5 border border-neutral-800">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-medium text-slate-200">Claim {idx + 1}: &ldquo;{c.claim}&rdquo;</span>
+                      <span className="font-medium text-white">Claim {idx + 1}: &ldquo;{c.claim}&rdquo;</span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
                         c.verification_status === "Verified"
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          ? "bg-white text-black border border-white"
                           : c.verification_status === "Partially Verified"
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                          : c.verification_status === "Conflicting Evidence"
-                          ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                          : "bg-slate-700/40 text-slate-400 border border-slate-700"
+                          ? "bg-neutral-800 text-neutral-200 border border-neutral-600"
+                          : "bg-neutral-900 text-neutral-300 border border-neutral-700"
                       }`}>
                         {c.verification_status}
                       </span>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
-                      <strong>Evidence Grounding:</strong> {c.evidence}
+                    <p className="text-neutral-400 text-[11px] leading-relaxed">
+                      <strong className="text-neutral-200">Evidence Grounding:</strong> {c.evidence}
                     </p>
                     {c.source_url && (
                       <a
                         href={c.source_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[10px] text-cyan-400 hover:underline inline-flex items-center gap-1 mt-1"
+                        className="text-[10px] text-white hover:underline inline-flex items-center gap-1 mt-1 font-medium"
                       >
                         Source Link <ExternalLink className="h-2.5 w-2.5" />
                       </a>
@@ -622,10 +583,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           <nav
             id="report-toc-nav"
             aria-label="Table of Contents"
-            className="rounded-xl border border-indigo-500/20 bg-indigo-950/10 p-4 transition-all scroll-mt-20 no-print print:hidden"
+            className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 transition-all scroll-mt-20 no-print print:hidden"
           >
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-indigo-300 mb-2.5">
-              <Hash className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-2.5">
+              <Hash className="h-3.5 w-3.5 text-white" />
               <span>Document Section Outline</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
@@ -634,12 +595,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   key={i}
                   type="button"
                   onClick={() => scrollToHeading(h.id)}
-                  className={`text-left rounded-lg px-2.5 py-1 text-xs transition-colors truncate cursor-pointer hover:bg-indigo-500/10 hover:text-indigo-200 ${
+                  className={`text-left rounded-lg px-2.5 py-1 text-xs transition-colors truncate cursor-pointer hover:bg-neutral-800 hover:text-white ${
                     h.level === 1
-                      ? "font-semibold text-slate-200"
+                      ? "font-semibold text-white"
                       : h.level === 2
-                      ? "pl-4 text-slate-300"
-                      : "pl-6 text-slate-400"
+                      ? "pl-4 text-neutral-300"
+                      : "pl-6 text-neutral-400"
                   }`}
                 >
                   &bull; {h.text}
@@ -651,9 +612,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
         {/* Markdown Content Display with Dynamic Anchor Headings */}
         <div
-          className={`prose prose-invert max-w-none space-y-4 text-slate-300 leading-relaxed ${
+          className={`prose prose-invert max-w-none space-y-4 text-neutral-300 leading-relaxed ${
             fontSize === "large" ? "text-base sm:text-lg" : "text-sm sm:text-base"
-          } print:prose-neutral print:text-slate-800 print:text-[11pt]`}
+          } print:prose-neutral print:text-black print:text-[11pt]`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -667,13 +628,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 return (
                   <h1
                     id={id}
-                    className="group relative scroll-mt-24 text-2xl font-bold tracking-tight text-white print:text-slate-950 border-b border-slate-800 print:border-slate-300 pb-2 mt-8 mb-4 break-after-avoid"
+                    className="group relative scroll-mt-24 text-2xl font-bold tracking-tight text-white print:text-black border-b border-neutral-800 print:border-neutral-300 pb-2 mt-8 mb-4 break-after-avoid"
                   >
                     <span>{children}</span>
                     <a
                       href={`#${id}`}
                       aria-label={`Link to ${text}`}
-                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-indigo-400 hover:text-indigo-300 transition-opacity no-print print:hidden"
+                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white transition-opacity no-print print:hidden"
                     >
                       #
                     </a>
@@ -689,13 +650,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 return (
                   <h2
                     id={id}
-                    className="group relative scroll-mt-24 text-xl font-bold tracking-tight text-indigo-200 print:text-slate-900 border-b border-slate-800/60 print:border-slate-300 pb-1 mt-6 mb-3 break-after-avoid"
+                    className="group relative scroll-mt-24 text-xl font-bold tracking-tight text-white print:text-black border-b border-neutral-800 print:border-neutral-300 pb-1 mt-6 mb-3 break-after-avoid"
                   >
                     <span>{children}</span>
                     <a
                       href={`#${id}`}
                       aria-label={`Link to ${text}`}
-                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-indigo-400 hover:text-indigo-300 transition-opacity no-print print:hidden"
+                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white transition-opacity no-print print:hidden"
                     >
                       #
                     </a>
@@ -711,13 +672,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 return (
                   <h3
                     id={id}
-                    className="group relative scroll-mt-24 text-lg font-semibold text-slate-100 print:text-slate-900 mt-5 mb-2 break-after-avoid"
+                    className="group relative scroll-mt-24 text-lg font-semibold text-neutral-100 print:text-black mt-5 mb-2 break-after-avoid"
                   >
                     <span>{children}</span>
                     <a
                       href={`#${id}`}
                       aria-label={`Link to ${text}`}
-                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-indigo-400 hover:text-indigo-300 transition-opacity no-print print:hidden"
+                      className="ml-2 inline-opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white transition-opacity no-print print:hidden"
                     >
                       #
                     </a>
@@ -731,15 +692,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         </div>
 
         {/* Footer info banner (Hidden in Print) */}
-        <div className="border-t border-slate-800/80 pt-4 flex items-center justify-between text-xs text-slate-500 no-print print:hidden">
+        <div className="border-t border-neutral-800 pt-4 flex items-center justify-between text-xs text-neutral-500 no-print print:hidden">
           <span className="flex items-center gap-1">
-            <FileText className="h-3.5 w-3.5" />
+            <FileText className="h-3.5 w-3.5 text-neutral-400" />
             Generated autonomously with verified web search grounding
           </span>
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="hover:text-slate-300 transition-colors cursor-pointer"
+            className="hover:text-white transition-colors cursor-pointer"
           >
             Back to top &uarr;
           </button>
@@ -750,11 +711,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       {showFloatingDock && (
         <aside
           aria-label="Quick reading actions"
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-1.5 rounded-2xl border border-slate-700/80 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-xl transition-all no-print print:hidden"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-1.5 rounded-2xl border border-neutral-700 bg-neutral-900/95 p-1.5 shadow-2xl backdrop-blur-xl transition-all no-print print:hidden"
         >
           <div
             title="Scroll Progress"
-            className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold text-indigo-300 border-r border-slate-800"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold text-white border-r border-neutral-800"
           >
             <span>{scrollProgress}%</span>
           </div>
@@ -770,7 +731,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 }
               }}
               title="Jump to Table of Contents"
-              className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+              className="rounded-xl p-2 text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer"
             >
               <ListTree className="h-4 w-4" />
             </button>
@@ -780,9 +741,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             type="button"
             onClick={handleCopy}
             title="Copy Markdown"
-            className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+            className="rounded-xl p-2 text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer"
           >
-            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            {copied ? <Check className="h-4 w-4 text-white" /> : <Copy className="h-4 w-4" />}
           </button>
 
           {onTogglePin && (
@@ -792,11 +753,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               title={isPinned ? "Unpin Chat" : "Pin Chat to Top"}
               className={`rounded-xl p-2 transition-colors cursor-pointer ${
                 isPinned
-                  ? "text-amber-400 bg-amber-500/20 hover:bg-amber-500/30"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-amber-300"
+                  ? "text-black bg-white hover:bg-neutral-200"
+                  : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
               }`}
             >
-              <Pin className={`h-4 w-4 ${isPinned ? "fill-amber-400" : ""}`} />
+              <Pin className={`h-4 w-4 ${isPinned ? "fill-black" : ""}`} />
             </button>
           )}
 
@@ -804,27 +765,27 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             type="button"
             onClick={handleDownloadWord}
             title="Download Word (.doc) File"
-            className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+            className="rounded-xl p-2 text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer"
           >
-            <FileText className="h-4 w-4 text-blue-400" />
+            <FileText className="h-4 w-4" />
           </button>
 
           <button
             type="button"
             onClick={handleExportPdf}
             title="Download clean Word-like PDF document"
-            className="rounded-xl p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+            className="rounded-xl p-2 text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer"
           >
-            <FileDown className="h-4 w-4 text-rose-400" />
+            <FileDown className="h-4 w-4" />
           </button>
 
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             title="Scroll back to top"
-            className="rounded-xl bg-indigo-600/90 p-2 text-white hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-600/30 cursor-pointer"
+            className="rounded-xl bg-white p-2 text-black hover:bg-neutral-200 transition-colors shadow-lg cursor-pointer"
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="h-4 w-4 stroke-[2.5]" />
           </button>
         </aside>
       )}
