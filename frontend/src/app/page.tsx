@@ -186,7 +186,7 @@ export default function Home() {
   const pinnedCount = savedReports.filter((item) => item.isPinned).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-white selection:text-black">
       <div className="no-print print:hidden">
         <Header
           backendStatus={backendStatus}
@@ -211,18 +211,18 @@ export default function Home() {
 
         {/* Error notification banner */}
         {error && (
-          <div className="no-print print:hidden rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-300 flex items-start justify-between gap-3 animate-in fade-in">
+          <div className="no-print print:hidden rounded-xl border border-neutral-700 bg-neutral-900 p-4 text-xs sm:text-sm text-neutral-200 flex items-start justify-between gap-3 animate-in fade-in">
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-white shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-rose-200">Research Pipeline Notice</p>
-                <p className="mt-1 text-rose-300/90 leading-relaxed">{error}</p>
+                <p className="font-semibold text-white">Research Pipeline Notice</p>
+                <p className="mt-1 text-neutral-300 leading-relaxed">{error}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-rose-400 hover:text-rose-200 p-1 cursor-pointer"
+              className="text-neutral-400 hover:text-white p-1 cursor-pointer"
             >
               <XCircle className="h-4 w-4" />
             </button>
@@ -253,17 +253,15 @@ export default function Home() {
         {/* Minimal ChatGPT-like Center Hero State */}
         {!report && !isLoading && (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 max-w-2xl mx-auto px-2 no-print print:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-xl shadow-indigo-500/20">
-              <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-slate-950">
-                <Sparkles className="h-6 w-6 text-cyan-400" />
-              </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-neutral-700 bg-neutral-900 text-white shadow-xl">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
 
             <div className="space-y-1.5">
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
                 What would you like to research?
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400">
+              <p className="text-xs sm:text-sm text-neutral-400">
                 Autonomous web research &middot; Grounded multi-source synthesis
               </p>
             </div>
@@ -297,7 +295,7 @@ export default function Home() {
         onSaveGeminiKey={handleSaveGeminiKey}
       />
 
-      <footer className="no-print print:hidden border-t border-slate-900 bg-slate-950 py-4 text-center text-[11px] text-slate-600">
+      <footer className="no-print print:hidden border-t border-neutral-900 bg-black py-4 text-center text-[11px] text-neutral-500">
         NexusResearch &middot; Autonomous Research Agent &middot; {new Date().getFullYear()}
       </footer>
     </div>
