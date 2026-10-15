@@ -55,6 +55,14 @@ export function formatProperHeading(rawTopic: string): string {
 
   if (!cleaned) cleaned = rawTopic.trim();
 
+  // Safely separate accidentally concatenated prepositions (e.g. "Politicsof India" -> "Politics of India")
+  cleaned = cleaned.replace(/\b([a-zA-Z]{4,})of(?=\s+[A-Z])/gi, (match, base) => {
+    if (/^(proof|roof|spoof|aloof|whereof|thereof)$/i.test(match)) {
+      return match;
+    }
+    return `${base} of`;
+  });
+
   const minorWords = new Set([
     "a", "an", "and", "as", "at", "but", "by", "for", "in", "nor", "of", "on", "or", "so", "the", "to", "up", "with", "yet"
   ]);
@@ -334,9 +342,26 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }
   };
 
-  const formattedDate = report.created_at
-    ? new Date(report.created_at).toLocaleString()
-    : new Date().toLocaleDateString();
+  const formattedDate = useMemo(() => {
+    try {
+      const dateObj = report.created_at ? new Date(report.created_at) : new Date();
+      if (isNaN(dateObj.getTime())) return "Recently synthesized";
+
+      const datePart = dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      const timePart = dateObj.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return `${datePart} · ${timePart}`;
+    } catch {
+      return new Date().toLocaleDateString();
+    }
+  }, [report.created_at]);
 
   const hasContentH1 = useMemo(() => /^#\s+/m.test(report.content), [report.content]);
 
@@ -354,122 +379,126 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         {/* Glow ambient highlight */}
         <div className="pointer-events-none absolute -top-px left-16 right-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-70" />
 
-        {/* Document Publication Header */}
-        <div className={`border-b border-white/[0.08] pb-6 ${hasContentH1 ? "print:hidden" : "print:border-b print:border-neutral-300 print:pb-3 print:mb-4"}`}>
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2.5 flex-1">
-              <div className="flex flex-wrap items-center gap-2.5 no-print print:hidden">
-                <span className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-200 shadow-sm font-sans">
-                  {report.report_type === "research_paper" ? "Academic Research Paper" : "Executive Strategic Report"}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono">
-                  <Calendar className="h-3.5 w-3.5 text-neutral-400" />
-                  {formattedDate}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono">
-                  <Clock className="h-3.5 w-3.5 text-neutral-400" />
-                  {readingTime} min read (~{wordCount} words)
-                </span>
-              </div>
-
-              {/* Main Title: 18pt, bold, centered */}
-              <h1 className="text-[18pt] font-bold text-center tracking-tight text-white print:text-black leading-tight font-serif">
-                {properTitle}
-              </h1>
-
-              {report.report_type === "research_paper" ? (
-                <div className="text-xs text-neutral-400 space-y-0.5 pt-1">
-                  <p className="text-neutral-200 font-semibold">NexusResearch Autonomous AI Synthesis System</p>
-                  <p className="text-neutral-500 font-mono text-[11px]">Autonomous Web Intelligence &amp; Empirical Synthesis Lab</p>
-                </div>
-              ) : (
-                /* Proper Title Underline Accent Bar */
-                <div className="h-1 w-24 bg-gradient-to-r from-white via-neutral-300 to-transparent rounded-full mt-3 print:hidden" />
-              )}
-            </div>
-
-            {/* Action Buttons: Essential Core Actions Only */}
-            <div className="flex flex-wrap items-center gap-2 no-print print:hidden">
-              {onSave && (
-                <button
-                  type="button"
-                  onClick={() => onSave(report)}
-                  disabled={isSaved}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
-                    isSaved
-                      ? "border-white/30 bg-white/15 text-white cursor-default shadow-sm"
-                      : "border-white/[0.08] bg-neutral-900/90 text-neutral-200 hover:border-white/20 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  {isSaved ? (
-                    <>
-                      <BookmarkCheck className="h-3.5 w-3.5 text-white" />
-                      <span>Saved</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bookmark className="h-3.5 w-3.5 text-neutral-400" />
-                      <span>Save</span>
-                    </>
-                  )}
-                </button>
-              )}
-
-              {onTogglePin && (
-                <button
-                  type="button"
-                  onClick={onTogglePin}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
-                    isPinned
-                      ? "border-white bg-white text-black shadow-sm"
-                      : "border-white/[0.08] bg-neutral-900/90 text-neutral-300 hover:border-white/20 hover:text-white hover:bg-neutral-800"
-                  }`}
-                  title={isPinned ? "Unpin this chat" : "Pin this chat to top of history"}
-                >
-                  <Pin className={`h-3.5 w-3.5 ${isPinned ? "fill-black text-black" : "text-neutral-400"}`} />
-                  <span>{isPinned ? "Pinned" : "Pin"}</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3.5 py-2 text-xs font-semibold text-neutral-200 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer"
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5 text-neutral-400" />}
-                <span>{copied ? "Copied!" : "Copy"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadWord}
-                className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3.5 py-2 text-xs font-semibold text-neutral-200 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer shadow-sm"
-                title="Download formatted Microsoft Word (.doc) file"
-              >
-                <FileText className="h-3.5 w-3.5 text-neutral-300" />
-                <span>Word (.doc)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleExportPdf}
-                className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white text-black px-4 py-2 text-xs font-bold transition-all hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer shadow-md active:scale-95"
-                title="Download clean publication-grade PDF"
-              >
-                <FileDown className="h-3.5 w-3.5 text-black" />
-                <span>Export PDF</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={onReset}
-                className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3.5 py-2 text-xs font-semibold text-neutral-300 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer"
-              >
-                <RotateCcw className="h-3.5 w-3.5 text-neutral-400" />
-                <span>New Research</span>
-              </button>
-            </div>
+        {/* Top Actions Toolbar (Hidden in Print) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4 no-print print:hidden">
+          {/* Document Type Badge */}
+          <div className="flex items-center gap-2">
+            <span className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-neutral-300 font-sans">
+              {report.report_type === "research_paper" ? "Academic Research Paper" : "Research Report"}
+            </span>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            {onSave && (
+              <button
+                type="button"
+                onClick={() => onSave(report)}
+                disabled={isSaved}
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  isSaved
+                    ? "border-white/30 bg-white/15 text-white cursor-default shadow-sm"
+                    : "border-white/[0.08] bg-neutral-900/90 text-neutral-200 hover:border-white/20 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                {isSaved ? (
+                  <>
+                    <BookmarkCheck className="h-3.5 w-3.5 text-white" />
+                    <span>Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-3.5 w-3.5 text-neutral-400" />
+                    <span>Save</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {onTogglePin && (
+              <button
+                type="button"
+                onClick={onTogglePin}
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  isPinned
+                    ? "border-white bg-white text-black shadow-sm"
+                    : "border-white/[0.08] bg-neutral-900/90 text-neutral-300 hover:border-white/20 hover:text-white hover:bg-neutral-800"
+                }`}
+                title={isPinned ? "Unpin this chat" : "Pin this chat to top of history"}
+              >
+                <Pin className={`h-3.5 w-3.5 ${isPinned ? "fill-black text-black" : "text-neutral-400"}`} />
+                <span>{isPinned ? "Pinned" : "Pin"}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3 py-1.5 text-xs font-semibold text-neutral-200 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-white" /> : <Copy className="h-3.5 w-3.5 text-neutral-400" />}
+              <span>{copied ? "Copied!" : "Copy"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadWord}
+              className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3 py-1.5 text-xs font-semibold text-neutral-200 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer shadow-sm"
+              title="Download formatted Microsoft Word (.doc) file"
+            >
+              <FileText className="h-3.5 w-3.5 text-neutral-300" />
+              <span>Word (.doc)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white text-black px-3.5 py-1.5 text-xs font-bold transition-all hover:bg-neutral-200 cursor-pointer shadow-md active:scale-95"
+              title="Download clean publication-grade PDF"
+            >
+              <FileDown className="h-3.5 w-3.5 text-black" />
+              <span>Export PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onReset}
+              className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-neutral-900/90 px-3 py-1.5 text-xs font-semibold text-neutral-300 transition-all hover:border-white/20 hover:bg-neutral-800 hover:text-white cursor-pointer"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-neutral-400" />
+              <span>New Research</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Document Publication Title & Meta Header */}
+        <div className={`space-y-3 pt-2 text-center ${hasContentH1 ? "print:hidden" : "print:mb-4"}`}>
+          {/* Main Title: 18pt, bold, centered */}
+          <h1 className="text-[18pt] font-bold text-center tracking-tight text-white print:text-black leading-tight font-serif max-w-3xl mx-auto">
+            {properTitle}
+          </h1>
+
+          {/* Clean, perfectly aligned metadata row */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-neutral-400 font-serif">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <Calendar className="h-3.5 w-3.5 text-neutral-400 shrink-0" />
+              <span>{formattedDate}</span>
+            </span>
+            <span className="text-neutral-600">&middot;</span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <Clock className="h-3.5 w-3.5 text-neutral-400 shrink-0" />
+              <span>{readingTime} min read (~{wordCount} words)</span>
+            </span>
+          </div>
+
+          {report.report_type === "research_paper" ? (
+            <div className="text-center text-xs text-neutral-400 space-y-0.5 pt-1">
+              <p className="text-neutral-200 font-serif font-medium">NexusResearch Autonomous AI Synthesis System</p>
+              <p className="text-neutral-500 font-serif text-[11px]">Autonomous Web Intelligence &amp; Empirical Synthesis Lab</p>
+            </div>
+          ) : (
+            <div className="mx-auto h-px w-20 bg-white/15 mt-3 print:hidden" />
+          )}
         </div>
 
         {/* Reader Controls Bar: Outline toggle & Font size (Hidden in Print) */}
