@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Urbanist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "NexusResearch | Autonomous AI Research & Report Agent",
-  description: "Generate deep executive reports and academic research papers powered by FastAPI, LangChain, and Tavily.",
+  description: "Enterprise-grade autonomous deep research, multi-source synthesis, and publication-ready reports powered by FastAPI, LangChain, and Tavily.",
 };
 
 export default function RootLayout({
@@ -25,9 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${urbanist.variable} ${jetbrainsMono.variable} font-sans h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-black text-white selection:bg-white selection:text-black">
+      <body className="min-h-full flex flex-col bg-[#090a0f] text-neutral-100 font-sans selection:bg-neutral-200 selection:text-black">
         {children}
       </body>
     </html>
