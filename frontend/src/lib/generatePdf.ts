@@ -59,7 +59,7 @@ function renderRichParagraph(
   lineHeight: number,
   bottomLimit: number,
   topMargin: number,
-  fontSize: number = 10.5
+  fontSize: number = 12
 ): number {
   doc.setFontSize(fontSize);
 
@@ -73,7 +73,7 @@ function renderRichParagraph(
   let curY = startY;
 
   for (const token of tokens) {
-    doc.setFont("helvetica", token.bold ? "bold" : "normal");
+    doc.setFont("times", token.bold ? "bold" : "normal");
 
     // Split token into words while preserving whitespace
     const words = token.text.split(/(\s+)/);
@@ -111,11 +111,13 @@ function renderRichParagraph(
 }
 
 /**
- * Generate and download a publication-grade Word-like PDF report.
- * - Standard Word margins (20mm all around)
- * - Zero browser junk (no localhost:3000, no browser date/headers/footers)
- * - No date in the document, pure topic information & synthesis
- * - Clean document typography matching Microsoft Word / Google Docs export
+ * Generate and download a publication-grade PDF report according to standard academic guidelines:
+ * - Font: Times New Roman
+ * - Margins: 1 inch (25.4mm) on all sides
+ * - Body text: 12 pt
+ * - Main title: 18 pt bold (centered)
+ * - Headings: 14 pt bold
+ * - Line spacing: 1.5 (approx 6.35mm)
  */
 export function generatePublicationPdf(report: ResearchResponse): void {
   const doc = new jsPDF({
@@ -126,9 +128,9 @@ export function generatePublicationPdf(report: ResearchResponse): void {
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 20; // 20mm margin like standard Word documents
-  const contentWidth = pageWidth - margin * 2; // 170mm
-  const bottomLimit = pageHeight - margin - 5; // 272mm
+  const margin = 25.4; // 1 inch = 25.4mm margin on all sides
+  const contentWidth = pageWidth - margin * 2; // 159.2mm
+  const bottomLimit = pageHeight - margin - 5;
   const topMargin = margin;
 
   let y = topMargin;
@@ -143,7 +145,6 @@ export function generatePublicationPdf(report: ResearchResponse): void {
   const lines = report.content.split("\n");
 
   // Determine Main Document Title
-  // If markdown starts with # Title, use that and skip it in line processing
   let mainTitle = "";
   let firstLineH1Index = -1;
 
@@ -165,109 +166,103 @@ export function generatePublicationPdf(report: ResearchResponse): void {
 
   const isAcademic = report.report_type === "research_paper";
 
+  // Main title: 18 pt, bold, centered
+  doc.setFont("times", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(0, 0, 0);
+  const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
+  doc.text(titleLines, pageWidth / 2, y, { align: "center" });
+  y += titleLines.length * 8 + 4;
+
   if (isAcademic) {
-    // Academic Paper Title: Centered 18pt bold
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(17, 24, 39); // #111827
-    const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
-    doc.text(titleLines, pageWidth / 2, y, { align: "center" });
-    y += titleLines.length * 7.5 + 3;
-
     // Academic Authors & Affiliation
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(75, 85, 99); // #4b5563
+    doc.setFont("times", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
     doc.text("NexusResearch Autonomous AI Synthesis System", pageWidth / 2, y, { align: "center" });
-    y += 5;
-    doc.setFontSize(9);
-    doc.setTextColor(107, 114, 128); // #6b7280
+    y += 5.5;
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
     doc.text("Autonomous Web Intelligence & Empirical Synthesis Lab", pageWidth / 2, y, { align: "center" });
-    y += 6;
+    y += 6.5;
 
-    // Subtle academic divider line
-    doc.setDrawColor(209, 213, 219); // #d1d5db
+    // Academic divider
+    doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.3);
-    doc.line(margin + 15, y, margin + contentWidth - 15, y);
-    y += 7;
+    doc.line(margin + 20, y, margin + contentWidth - 20, y);
+    y += 8;
   } else {
-    // Executive Report Title (Word-like 20pt bold, dark navy-slate)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(15, 23, 42); // #0f172a
-    const titleLines = doc.splitTextToSize(mainTitle, contentWidth);
-    doc.text(titleLines, margin, y);
-    y += titleLines.length * 8 + 2;
-
-    // Title underline accent line (subtle Word-like rule)
-    doc.setDrawColor(203, 213, 225); // #cbd5e1
+    // Report divider rule
+    doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.4);
     doc.line(margin, y, margin + contentWidth, y);
-    y += 7;
+    y += 8;
   }
+
+  // 1.5 Line spacing for 12pt body text is approx 6.35mm
+  const bodyLineHeight = 6.35;
 
   // Process Document Body
   for (let i = 0; i < lines.length; i++) {
     if (i === firstLineH1Index) {
-      continue; // Skip title as it's already rendered at the top
+      continue; // Skip title as it's already rendered
     }
 
     const rawLine = lines[i].trim();
 
     // Blank line -> Paragraph spacing
     if (!rawLine) {
-      y += 2.5;
+      y += 3;
       continue;
     }
 
-    // Skip duplicate title or warning banners
     if (rawLine.startsWith("> [!WARNING]") || rawLine.startsWith("> [!NOTE]")) {
       continue;
     }
 
-    // Heading 1 (# Heading)
+    // Heading 1 (# Heading): 14 pt, bold
     if (rawLine.startsWith("# ")) {
       const headingText = rawLine.replace(/^#\s*/, "").replace(/[*_]/g, "").trim();
       checkPageBreak(18);
-      y += 4;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(15);
-      doc.setTextColor(15, 23, 42);
+      y += 5;
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
       const hLines = doc.splitTextToSize(headingText, contentWidth);
       doc.text(hLines, margin, y);
-      y += hLines.length * 6 + 1.5;
-      doc.setDrawColor(226, 232, 240);
+      y += hLines.length * 6.5 + 2;
+      doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.3);
       doc.line(margin, y, margin + contentWidth, y);
-      y += 4;
+      y += 4.5;
       continue;
     }
 
-    // Heading 2 (## Heading)
+    // Heading 2 (## Heading): 14 pt, bold
     if (rawLine.startsWith("## ")) {
       const headingText = rawLine.replace(/^##\s*/, "").replace(/[*_]/g, "").trim();
       checkPageBreak(15);
-      y += 4;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13.5);
-      doc.setTextColor(0, 0, 0); // Monochrome Heading 2
+      y += 5;
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
       const hLines = doc.splitTextToSize(headingText, contentWidth);
       doc.text(hLines, margin, y);
-      y += hLines.length * 5.5 + 2.5;
+      y += hLines.length * 6 + 2.5;
       continue;
     }
 
-    // Heading 3 (### Heading)
+    // Heading 3 (### Heading): 12 pt, bold
     if (rawLine.startsWith("### ")) {
       const headingText = rawLine.replace(/^###\s*/, "").replace(/[*_]/g, "").trim();
       checkPageBreak(13);
-      y += 3;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11.5);
-      doc.setTextColor(38, 38, 38);
+      y += 4;
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
       const hLines = doc.splitTextToSize(headingText, contentWidth);
       doc.text(hLines, margin, y);
-      y += hLines.length * 5 + 2;
+      y += hLines.length * 5.5 + 2;
       continue;
     }
 
@@ -276,11 +271,11 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       const quoteText = rawLine.replace(/^>\s*/, "").replace(/[*_]/g, "").trim();
       checkPageBreak(12);
       const quoteStartY = y;
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(10);
-      doc.setTextColor(64, 64, 64);
-      const qLines = doc.splitTextToSize(quoteText, contentWidth - 8);
-      const quoteHeight = qLines.length * 4.8;
+      doc.setFont("times", "italic");
+      doc.setFontSize(11);
+      doc.setTextColor(50, 50, 50);
+      const qLines = doc.splitTextToSize(quoteText, contentWidth - 10);
+      const quoteHeight = qLines.length * 5.2;
 
       // Draw left bar
       doc.setDrawColor(0, 0, 0);
@@ -289,10 +284,10 @@ export function generatePublicationPdf(report: ResearchResponse): void {
 
       for (const ql of qLines) {
         checkPageBreak(5);
-        doc.text(ql, margin + 5, y);
-        y += 4.8;
+        doc.text(ql, margin + 6, y);
+        y += 5.2;
       }
-      y += 2.5;
+      y += 3;
       continue;
     }
 
@@ -301,26 +296,24 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       const bulletContent = rawLine.replace(/^[-*]\s*/, "").trim();
       checkPageBreak(8);
 
-      // Draw bullet point symbol
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10.5);
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text("\u2022", margin + 1, y);
+      doc.text("\u2022", margin + 1.5, y);
 
-      // Render bullet content with inline bold and indentation
-      doc.setTextColor(31, 41, 55);
+      doc.setTextColor(0, 0, 0);
       y = renderRichParagraph(
         doc,
         bulletContent,
-        margin + 5.5,
+        margin + 7,
         y,
-        contentWidth - 6,
-        5.0,
+        contentWidth - 8,
+        bodyLineHeight,
         bottomLimit,
         topMargin,
-        10
+        12
       );
-      y += 1.5;
+      y += 2;
       continue;
     }
 
@@ -331,42 +324,42 @@ export function generatePublicationPdf(report: ResearchResponse): void {
       const itemContent = numMatch[2].trim();
       checkPageBreak(8);
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text(prefix, margin + 0.5, y);
 
-      doc.setTextColor(31, 41, 55);
+      doc.setTextColor(0, 0, 0);
       y = renderRichParagraph(
         doc,
         itemContent,
-        margin + 6,
+        margin + 8,
         y,
-        contentWidth - 6.5,
-        5.0,
+        contentWidth - 9,
+        bodyLineHeight,
         bottomLimit,
         topMargin,
-        10
+        12
       );
-      y += 1.5;
+      y += 2;
       continue;
     }
 
-    // Standard Body Paragraph
+    // Standard Body Paragraph: 12 pt, 1.5 line spacing
     checkPageBreak(8);
-    doc.setTextColor(17, 24, 39);
+    doc.setTextColor(0, 0, 0);
     y = renderRichParagraph(
       doc,
       rawLine,
       margin,
       y,
       contentWidth,
-      5.2,
+      bodyLineHeight,
       bottomLimit,
       topMargin,
-      10.5
+      12
     );
-    y += 2.5;
+    y += 3;
   }
 
   // Document Integrity & Quality Validation Stamp
@@ -374,30 +367,30 @@ export function generatePublicationPdf(report: ResearchResponse): void {
     checkPageBreak(20);
     y += 5;
     doc.setDrawColor(212, 212, 212);
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(margin, y, contentWidth, 14, 2, 2, "FD");
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(margin, y, contentWidth, 14, 1.5, 1.5, "FD");
     
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
     doc.text("VERIFICATION & ACCURACY AUDIT", margin + 4, y + 5);
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(64, 64, 64);
+    doc.setFont("times", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(60, 60, 60);
     const auditText = `Claim Support Rate: ${report.metrics.claim_support_rate}%   |   Citation Precision: ${report.metrics.citation_precision}%   |   Source Verification: ${report.metrics.source_verification_rate}%`;
     doc.text(auditText, margin + 4, y + 10);
     y += 18;
   }
 
-  // Add Word-like Page Numbers in Footer (No URL, No localhost:3000, No Date)
+  // Word-like Page Numbers in Footer
   const totalPages = doc.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(115, 115, 115);
-    doc.text(`Page ${p} of ${totalPages}`, pageWidth / 2, pageHeight - 10, {
+    doc.setFont("times", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Page ${p} of ${totalPages}`, pageWidth / 2, pageHeight - 12, {
       align: "center",
     });
   }
