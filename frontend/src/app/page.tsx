@@ -186,8 +186,8 @@ export default function Home() {
   const pinnedCount = savedReports.filter((item) => item.isPinned).length;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-white selection:text-black">
-      <div className="no-print print:hidden">
+    <div className="min-h-screen bg-[#0a0a0c] text-neutral-100 flex flex-col relative selection:bg-neutral-200 selection:text-black overflow-x-hidden font-sans">
+      <div className="no-print print:hidden relative z-40">
         <Header
           backendStatus={backendStatus}
           apiUrl={apiUrl}
@@ -198,8 +198,8 @@ export default function Home() {
         />
       </div>
 
-      <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 space-y-6">
-        {/* If report or loading: Show minimal compact prompt at top */}
+      <main className="flex-1 mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 space-y-6 relative z-10">
+        {/* If report or loading: Show compact prompt at top */}
         {(report || isLoading) && (
           <section className="pt-2 no-print print:hidden">
             <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
@@ -211,18 +211,18 @@ export default function Home() {
 
         {/* Error notification banner */}
         {error && (
-          <div className="no-print print:hidden rounded-xl border border-neutral-700 bg-neutral-900 p-4 text-xs sm:text-sm text-neutral-200 flex items-start justify-between gap-3 animate-in fade-in">
+          <div className="no-print print:hidden rounded-xl border border-rose-500/20 bg-rose-950/20 p-3.5 text-xs sm:text-sm text-neutral-200 flex items-start justify-between gap-3 backdrop-blur-md">
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="h-5 w-5 text-white shrink-0 mt-0.5" />
+              <AlertCircle className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />
               <div>
-                <p className="font-semibold text-white">Research Pipeline Notice</p>
-                <p className="mt-1 text-neutral-300 leading-relaxed">{error}</p>
+                <p className="font-semibold text-white">Notice</p>
+                <p className="mt-0.5 text-neutral-300 font-sans">{error}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+              className="text-neutral-400 hover:text-white p-1 cursor-pointer transition-colors"
             >
               <XCircle className="h-4 w-4" />
             </button>
@@ -250,23 +250,21 @@ export default function Home() {
           </section>
         )}
 
-        {/* Minimal ChatGPT-like Center Hero State */}
+        {/* Minimal Hero State */}
         {!report && !isLoading && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 max-w-2xl mx-auto px-2 no-print print:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-neutral-700 bg-neutral-900 text-white shadow-xl">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                What would you like to research?
+          <div className="flex flex-col items-center justify-center min-h-[58vh] text-center space-y-6 max-w-3xl mx-auto px-2 no-print print:hidden pt-8 pb-12">
+            {/* Minimal Headline with clear font */}
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-sans">
+                What do you want to research?
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400">
-                Autonomous web research &middot; Grounded multi-source synthesis
+              <p className="text-base sm:text-lg text-neutral-300 font-sans sm:whitespace-nowrap">
+                Synthesize verified reports and deep academic analysis from live sources.
               </p>
             </div>
 
-            <div className="w-full pt-2">
+            {/* Prompt Form */}
+            <div className="w-full pt-1">
               <ResearchForm onSubmit={handleRunResearch} isLoading={isLoading} />
             </div>
           </div>
@@ -295,8 +293,8 @@ export default function Home() {
         onSaveGeminiKey={handleSaveGeminiKey}
       />
 
-      <footer className="no-print print:hidden border-t border-neutral-900 bg-black py-4 text-center text-[11px] text-neutral-500">
-        NexusResearch &middot; Autonomous Research Agent &middot; {new Date().getFullYear()}
+      <footer className="no-print print:hidden border-t border-white/[0.04] py-4 text-center text-xs text-neutral-500 relative z-20">
+        Nexus Research
       </footer>
     </div>
   );
