@@ -84,26 +84,26 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm transition-opacity">
-      <div className="relative flex h-full w-full max-w-lg flex-col border-l border-neutral-800 bg-neutral-950 p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-md transition-opacity font-sans">
+      <div className="relative flex h-full w-full max-w-lg flex-col border-l border-white/[0.1] bg-[#0c0e14]/95 backdrop-blur-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white border border-neutral-700">
-              <Bookmark className="h-4.5 w-4.5 text-white" />
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-b from-neutral-800 to-neutral-900 text-white border border-white/10 shadow-sm">
+              <Bookmark className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <span>Research & Chat History</span>
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <span>Research &amp; Chat Archive</span>
                 {pinnedCount > 0 && (
-                  <span className="flex items-center gap-1 rounded-full bg-white text-black px-2 py-0.5 text-[10px] font-bold">
+                  <span className="flex items-center gap-1 rounded-full bg-white text-black px-2 py-0.5 text-[10px] font-bold shadow-sm">
                     <Pin className="h-2.5 w-2.5 fill-black" />
                     {pinnedCount} pinned
                   </span>
                 )}
               </h2>
               <p className="text-[11px] text-neutral-400">
-                {savedReports.length} {savedReports.length === 1 ? "session" : "sessions"} recorded
+                {savedReports.length} {savedReports.length === 1 ? "session" : "sessions"} indexed
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-900 hover:text-white transition-colors cursor-pointer"
+            className="rounded-xl p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -119,21 +119,21 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
         {/* Filter and Search Controls */}
         {savedReports.length > 0 && (
-          <div className="space-y-2.5 border-b border-neutral-800 py-3">
+          <div className="space-y-3 border-b border-white/[0.08] py-3.5">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search past chats & reports..."
-                className="w-full rounded-lg border border-neutral-800 bg-neutral-900 pl-8 pr-7 py-1.5 text-xs text-white placeholder-neutral-500 focus:border-white focus:outline-none"
+                placeholder="Search archived research & synthesis..."
+                className="w-full rounded-xl border border-white/[0.08] bg-black/40 pl-9 pr-8 py-2 text-xs text-white placeholder-neutral-500 focus:border-white/30 focus:outline-none transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs cursor-pointer"
                 >
                   &times;
                 </button>
@@ -142,17 +142,17 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 text-[11px] overflow-x-auto pb-0.5">
-              <span className="flex items-center gap-1 text-neutral-500 mr-1 shrink-0">
+              <span className="flex items-center gap-1 text-neutral-500 mr-1 shrink-0 font-medium">
                 <Filter className="h-3 w-3" />
                 Filter:
               </span>
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`rounded px-2.5 py-1 transition-colors cursor-pointer shrink-0 font-medium ${
+                className={`rounded-lg px-2.5 py-1 transition-all cursor-pointer shrink-0 font-semibold ${
                   activeTab === "all"
-                    ? "bg-white text-black font-semibold"
-                    : "bg-neutral-900 text-neutral-400 hover:text-white"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
                 All ({savedReports.length})
@@ -160,10 +160,10 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("pinned")}
-                className={`flex items-center gap-1 rounded px-2.5 py-1 transition-colors cursor-pointer shrink-0 font-medium ${
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 transition-all cursor-pointer shrink-0 font-semibold ${
                   activeTab === "pinned"
-                    ? "bg-white text-black font-semibold"
-                    : "bg-neutral-900 text-neutral-400 hover:text-white"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
                 <Pin className={`h-3 w-3 ${activeTab === "pinned" ? "fill-black" : ""}`} />
@@ -172,10 +172,10 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("report")}
-                className={`rounded px-2.5 py-1 transition-colors cursor-pointer shrink-0 font-medium ${
+                className={`rounded-lg px-2.5 py-1 transition-all cursor-pointer shrink-0 font-semibold ${
                   activeTab === "report"
-                    ? "bg-white text-black font-semibold"
-                    : "bg-neutral-900 text-neutral-400 hover:text-white"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
                 Executive
@@ -183,10 +183,10 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("research_paper")}
-                className={`rounded px-2.5 py-1 transition-colors cursor-pointer shrink-0 font-medium ${
+                className={`rounded-lg px-2.5 py-1 transition-all cursor-pointer shrink-0 font-semibold ${
                   activeTab === "research_paper"
-                    ? "bg-white text-black font-semibold"
-                    : "bg-neutral-900 text-neutral-400 hover:text-white"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
                 Academic
@@ -200,8 +200,8 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
           {savedReports.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center px-4">
               <FileText className="h-10 w-10 text-neutral-600 mb-2" />
-              <p className="text-xs font-medium text-neutral-300">No history recorded yet</p>
-              <p className="mt-1 text-[11px] text-neutral-500">
+              <p className="text-xs font-semibold text-neutral-300">No archive recorded yet</p>
+              <p className="mt-1 text-[11px] text-neutral-500 max-w-xs">
                 Run any research prompt to automatically store and pin past chats here for offline reference.
               </p>
             </div>
@@ -218,7 +218,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                   setSearchQuery("");
                   setActiveTab("all");
                 }}
-                className="mt-2 text-xs text-white hover:underline cursor-pointer"
+                className="mt-2 text-xs text-cyan-400 hover:underline cursor-pointer font-medium"
               >
                 Show all history
               </button>
@@ -231,12 +231,12 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`group relative rounded-xl border p-4 transition-all ${
+                  className={`group relative rounded-2xl border p-4 transition-all duration-200 ${
                     isItemPinned
-                      ? "border-white/50 bg-white/5 hover:border-white hover:bg-neutral-900"
+                      ? "border-white/40 bg-white/[0.06] hover:border-white/60 hover:bg-white/[0.08] shadow-[0_0_20px_rgba(255,255,255,0.03)]"
                       : isItemActive
-                      ? "border-white/40 bg-neutral-900"
-                      : "border-neutral-800 bg-neutral-900/40 hover:border-neutral-600 hover:bg-neutral-900/80"
+                      ? "border-white/30 bg-neutral-900"
+                      : "border-white/[0.07] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
                   }`}
                 >
                   {/* Top Status Badges */}
