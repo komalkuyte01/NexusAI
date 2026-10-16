@@ -13,10 +13,20 @@ export function getDocumentFileSlug(rawTopic: string): string {
   if (!rawTopic) return "research";
 
   // Strip conversational prompt prefixes
-  const cleaned = rawTopic.trim().replace(
+  let cleaned = rawTopic.trim().replace(
     /^(please\s+)?(generate\s+(info|information|a\s+report|an\s+analysis)?\s+(on|about)?|write\s+(a\s+report|an\s+essay|an\s+analysis|about)?\s+(on|about)?|tell\s+me\s+about|research\s+(on|about)?|give\s+me\s+(info|information|details)\s+(on|about)?|what\s+is\s+the\s+condition\s+of|what\s+is|what\s+are|overview\s+of)\s+/i,
     ""
   ).trim();
+
+  // Strip word count requests
+  cleaned = cleaned.replace(/(?:(?:with|in|around|about|approximately|target|of|min|at\s+least)\s+)?(\d+(?:,\d+)?|\d+(?:\.\d+)?k)\s*(?:[- ]?\s*(?:words?|w\b))/gi, "").trim();
+
+  // Strip custom outline suffix
+  cleaned = cleaned.replace(/(?:with\s+sections?|custom\s+sections?|custom\s+outline|sections?:\s*)\s*[:\-]?\s*(.+)$/i, "").trim();
+
+  // Strip conversational suffixes
+  cleaned = cleaned.replace(/\s+(?:report|research\s+paper|paper|essay|analysis|summary)?\s*(?:give\s+me|please|thanks)?\s*$/i, "").trim();
+  cleaned = cleaned.replace(/\s+(?:with|in|for|on|about)$/i, "").trim();
 
   const target = cleaned || rawTopic;
   const slug = target

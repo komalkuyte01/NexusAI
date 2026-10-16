@@ -53,6 +53,16 @@ export function formatProperHeading(rawTopic: string): string {
     ""
   ).trim();
 
+  // Strip word count requests (e.g. "5000 words", "5k words", "with 4000 words")
+  cleaned = cleaned.replace(/(?:(?:with|in|around|about|approximately|target|of|min|at\s+least)\s+)?(\d+(?:,\d+)?|\d+(?:\.\d+)?k)\s*(?:[- ]?\s*(?:words?|w\b))/gi, "").trim();
+
+  // Strip custom outline/sections suffix (e.g. "with sections: ...")
+  cleaned = cleaned.replace(/(?:with\s+sections?|custom\s+sections?|custom\s+outline|sections?:\s*)\s*[:\-]?\s*(.+)$/i, "").trim();
+
+  // Strip conversational suffixes (e.g. "report give me", "5000 words report give me", "give me", "please")
+  cleaned = cleaned.replace(/\s+(?:report|research\s+paper|paper|essay|analysis|summary)?\s*(?:give\s+me|please|thanks)?\s*$/i, "").trim();
+  cleaned = cleaned.replace(/\s+(?:with|in|for|on|about)$/i, "").trim();
+
   if (!cleaned) cleaned = rawTopic.trim();
 
   // Safely separate accidentally concatenated prepositions (e.g. "Politicsof India" -> "Politics of India")

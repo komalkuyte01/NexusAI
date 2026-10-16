@@ -23,7 +23,8 @@ def get_llm(user_gemini_key: Optional[str] = None, model_name: Optional[str] = N
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             api_key=gemini_key,
             model=target_model,
-            temperature=0.1
+            temperature=0.1,
+            max_tokens=8192
         )
 
     # 2. Groq Check (Free and fast)
@@ -33,13 +34,14 @@ def get_llm(user_gemini_key: Optional[str] = None, model_name: Optional[str] = N
             base_url="https://api.groq.com/openai/v1",
             api_key=groq_key,
             model="llama-3.3-70b-versatile",
-            temperature=0.1
+            temperature=0.1,
+            max_tokens=8192
         )
 
     # 3. OpenAI
     openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_API_KEY")
     if openai_key and not openai_key.startswith("placeholder") and openai_key != "your_openai_api_key":
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0.1, api_key=openai_key)
+        return ChatOpenAI(model="gpt-4o-mini", temperature=0.1, api_key=openai_key, max_tokens=8192)
 
     raise ValueError(
         "No active AI API key found. Please provide a GEMINI_API_KEY or OPENAI_API_KEY in .env or via Web Settings."
@@ -259,7 +261,12 @@ def generate_report(
         llm = get_llm(user_gemini_key)
 
         if custom_format and custom_format.strip():
-            structure_instructions = f"Follow this specific custom format/sections requested by user:\n{custom_format.strip()}"
+            structure_instructions = (
+                "USER CUSTOM OUTLINE MANDATE:\n"
+                "The user has specified a mandatory CUSTOM section hierarchy. You MUST structure your report strictly according to these requested sections and headings:\n\n"
+                f"{custom_format.strip()}\n\n"
+                "Do NOT replace or omit these requested sections. Populate every section with substantive, evidence-grounded synthesis."
+            )
         elif report_type == "research_paper":
             structure_instructions = STRUCTURE_RESEARCH_PAPER
         else:
@@ -267,7 +274,18 @@ def generate_report(
 
         additional_reqs = ""
         if requirements and requirements.strip():
-            additional_reqs = f"User Specific Constraints:\n{requirements.strip()}\n"
+            additional_reqs = f"User Specific Constraints & Requirements:\n{requirements.strip()}\n"
+
+        depth_instruction = ""
+        if requirements and any(k in requirements.lower() for k in ["target length", "words", "5000", "5k", "3000", "3k", "comprehensive", "in-depth"]):
+            depth_instruction = (
+                "COMPREHENSIVE DEPTH & LENGTH MANDATE:\n"
+                "- The user specifically requested an expansive, long-form document. Do NOT summarize or condense.\n"
+                "- Provide extensive, multi-paragraph coverage under every major heading.\n"
+                "- Introduce detailed subheadings (###) to explore technical architectures, regulatory frameworks, operational workflows, case studies, risk assessments, and implementation roadmaps.\n"
+                "- Incorporate structured markdown comparison tables with multi-column trade-offs, metrics, and benchmarks.\n"
+                "- Write out full analytical explanations and cite sources thoroughly to meet the target depth.\n"
+            )
 
         system_instruction = (
             "You are a rigorous research analyst and academic scholar operating under strict evidence-grounded standards.\n"
@@ -289,6 +307,7 @@ Topic: {topic}
 {structure_instructions}
 
 {additional_reqs}
+{depth_instruction}
 Retrieved Research Context (Verified Grounding Data):
 {research_context}
 
@@ -307,6 +326,7 @@ Write a comprehensive, objective, and deeply grounded document adhering strictly
                 "topic": topic,
                 "structure_instructions": structure_instructions,
                 "additional_reqs": additional_reqs,
+                "depth_instruction": depth_instruction,
                 "research_context": research_context
             })
             return report_content
@@ -319,6 +339,7 @@ Write a comprehensive, objective, and deeply grounded document adhering strictly
                     "topic": topic,
                     "structure_instructions": structure_instructions,
                     "additional_reqs": additional_reqs,
+                    "depth_instruction": depth_instruction,
                     "research_context": research_context
                 })
             raise invoke_err

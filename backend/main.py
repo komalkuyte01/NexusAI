@@ -8,6 +8,7 @@ from models import ResearchRequest, ResearchResponse, SourceItem
 from research import perform_research
 from report import generate_report
 from verification import evaluate_research_claims_and_metrics
+from prompt_parser import extract_prompt_instructions
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -44,23 +45,41 @@ def health_check():
 def research_endpoint(request: ResearchRequest):
     """
     Perform web research with Tavily and generate a structured report via LangChain.
+    Extracts custom formatting and length/word count mandates from the prompt if present.
     """
     try:
-        # Step 1: Web Research via Tavily
+        # Step 0: Extract clean topic, target length, and custom format from user query
+        cleaned_topic, extracted_reqs, extracted_format = extract_prompt_instructions(request.topic)
+
+        # Merge user-provided requirements and format with extracted ones
+        req_parts = []
+        if extracted_reqs:
+            req_parts.append(extracted_reqs)
+        if request.requirements and request.requirements.strip():
+            req_parts.append(request.requirements.strip())
+        final_requirements = "\n\n".join(req_parts) if req_parts else None
+
+        final_format = (
+            request.custom_format.strip()
+            if request.custom_format and request.custom_format.strip()
+            else extracted_format
+        )
+
+        # Step 1: Web Research via Tavily using cleaned topic for highest signal grounding
         research_data = perform_research(
-            query=request.topic,
+            query=cleaned_topic,
             max_results=6,
             report_type=request.report_type
         )
         sources_list = [SourceItem(**s) for s in research_data["sources"]]
 
-        # Step 2: Report Generation via LangChain
+        # Step 2: Report Generation via LangChain with custom formatting and word count adherence
         generated_content = generate_report(
-            topic=request.topic,
+            topic=cleaned_topic,
             research_context=research_data["context"],
             report_type=request.report_type,
-            requirements=request.requirements,
-            custom_format=request.custom_format,
+            requirements=final_requirements,
+            custom_format=final_format,
             user_gemini_key=request.gemini_api_key
         )
 
@@ -71,7 +90,7 @@ def research_endpoint(request: ResearchRequest):
         )
 
         return ResearchResponse(
-            topic=request.topic,
+            topic=cleaned_topic,
             report_type=request.report_type,
             sources=sources_list,
             content=generated_content,
