@@ -50,7 +50,7 @@ def get_llm(user_gemini_key: Optional[str] = None, model_name: Optional[str] = N
 STRUCTURE_RESEARCH_PAPER = """
 Please format the document as an Academic Research Paper using this exact section hierarchy:
 # [Paper Title]
-**Authors:** NexusResearch Autonomous AI Synthesis System
+**Authors:** NexusAI Autonomous AI Synthesis System
 **Affiliation:** Autonomous Web Intelligence & Empirical Synthesis Lab
 
 ## Abstract
@@ -149,7 +149,7 @@ def fallback_synthesize_report(
 
     if is_academic:
         report_lines.extend([
-            "**Authors:** NexusResearch Autonomous AI Synthesis System  ",
+            "**Authors:** NexusAI Autonomous AI Synthesis System  ",
             "**Affiliation:** Autonomous Web Intelligence & Empirical Synthesis Lab  ",
             "",
             "## Abstract",

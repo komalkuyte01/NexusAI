@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NexusResearch | Autonomous AI Research & Report Agent",
+  title: "NexusAI | Autonomous AI Research & Report Agent",
   description: "Enterprise-grade autonomous deep research, multi-source synthesis, and publication-ready reports powered by FastAPI, LangChain, and Tavily.",
 };
 

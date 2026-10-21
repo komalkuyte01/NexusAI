@@ -14,8 +14,8 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 app = FastAPI(
-    title="AI Research & Report Generator API",
-    description="Minimal, interview-ready backend using FastAPI, LangChain, and Tavily to research topics and generate reports.",
+    title="NexusAI - Autonomous Research & Report Generator API",
+    description="Enterprise-grade autonomous deep research and synthesis backend using FastAPI, LangChain, Tavily, and multi-model LLMs.",
     version="1.0.0"
 )
 

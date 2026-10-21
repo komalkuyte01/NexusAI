@@ -280,7 +280,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         <div style="margin-bottom: 24pt;">
           <h1>${properTitle}</h1>
           <div class="academic-meta">
-            <strong>NexusResearch Autonomous AI Synthesis System</strong><br/>
+            <strong>NexusAI Autonomous AI Synthesis System</strong><br/>
             Autonomous Web Intelligence & Empirical Synthesis Lab<br/>
             <em>Synthesized via Grounded Autonomous Research Engine &middot; ~${wordCount} words</em>
           </div>
@@ -503,7 +503,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
           {report.report_type === "research_paper" ? (
             <div className="text-center text-xs text-neutral-400 space-y-0.5 pt-1">
-              <p className="text-neutral-200 font-serif font-medium">NexusResearch Autonomous AI Synthesis System</p>
+              <p className="text-neutral-200 font-serif font-medium">NexusAI Autonomous AI Synthesis System</p>
               <p className="text-neutral-500 font-serif text-[11px]">Autonomous Web Intelligence &amp; Empirical Synthesis Lab</p>
             </div>
           ) : (

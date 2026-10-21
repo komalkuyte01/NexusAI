@@ -294,7 +294,7 @@ export default function Home() {
       />
 
       <footer className="no-print print:hidden border-t border-white/[0.04] py-4 text-center text-xs text-neutral-500 relative z-20">
-        Nexus Research
+        NexusAI
       </footer>
     </div>
   );

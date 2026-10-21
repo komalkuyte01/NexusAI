@@ -189,7 +189,7 @@ export function generatePublicationPdf(report: ResearchResponse): void {
     doc.setFont("times", "normal");
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
-    doc.text("NexusResearch Autonomous AI Synthesis System", pageWidth / 2, y, { align: "center" });
+    doc.text("NexusAI Autonomous AI Synthesis System", pageWidth / 2, y, { align: "center" });
     y += 5.5;
     doc.setFontSize(10);
     doc.setTextColor(90, 90, 90);

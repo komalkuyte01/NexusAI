@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
             N
           </div>
           <span className="text-base font-semibold tracking-tight text-white">
-            Nexus <span className="text-neutral-400 font-normal">Research</span>
+            Nexus<span className="text-neutral-400 font-normal">AI</span>
           </span>
         </div>
 

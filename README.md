@@ -1,4 +1,4 @@
-# Research & Report Agent (NexusResearch)
+# Research & Report Agent (NexusAI)
 
 An autonomous Multi-Agent Research and Publication-Grade Synthesis system built with FastAPI, LangChain, Tavily Search, Google Gemini, and a Next.js TypeScript web application.
 
